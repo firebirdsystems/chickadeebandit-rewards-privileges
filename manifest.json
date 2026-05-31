@@ -16,5 +16,6 @@
     "requires_approval": false
   },
   "storage": "none",
+  "nav": { "label": "My App" },
   "icon": "🔧"
 }

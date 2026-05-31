@@ -494,6 +494,16 @@ const LIMITS = window.__RESOURCE_LIMITS ?? {};
 
 Apps do not need to enforce these limits themselves — the hub enforces them and returns 507 when exceeded. But apps may read them to display a storage bar or warn the user before an upload.
 
+## Nav label
+
+Every app must include a `nav` field in `manifest.json` so it appears in the hub's left navigation by default:
+
+```json
+"nav": { "label": "My App" }
+```
+
+Use a short label (1–2 words). Never omit this field — apps without it are invisible in the nav until an admin manually enables them.
+
 ## Base href
 
 Every app sets `<base href="/run/{app-id}/">` in `<head>` so relative asset paths resolve correctly inside the hub iframe.
