@@ -1,15 +1,13 @@
 {
-  "name": "chickadee-app-template",
+  "name": "chickadeebandit-rewards-privileges",
   "version": "1.0.0",
-  "description": "Template for building Chickadee Bandit marketplace apps",
+  "description": "Rewards and privileges app for Chickadee Bandit",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
     "dev": "node dev.mjs",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "sync-sdk": "node sync-hub-sdk.mjs",
-    "check-sdk": "node sync-hub-sdk.mjs --check"
+    "test:watch": "vitest"
   },
   "license": "MIT",
   "devDependencies": {

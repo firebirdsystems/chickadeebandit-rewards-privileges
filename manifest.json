@@ -1,21 +1,70 @@
 {
-  "id": "my-app",
-  "name": "My App",
+  "id": "rewards-privileges",
+  "name": "Rewards & Privileges",
   "version": "1.0.0",
-  "description": "A short description of what this app does.",
+  "description": "A lightweight motivation layer for kids: adults define redeemable rewards and privileges, kids see what they are working toward, and approved redemptions celebrate effort without making every chore about money.",
   "entrypoint": "index.html",
   "runtime": "static",
-  "category": "general",
-  "tags": [],
+  "category": "family",
+  "tags": [
+    "kids",
+    "rewards",
+    "privileges",
+    "motivation",
+    "chores",
+    "allowance"
+  ],
   "data_access": {
-    "reads": [],
+    "reads": [
+      "family.members"
+    ],
     "writes": []
   },
   "permissions": {
     "default_audience": "everyone",
     "requires_approval": false
   },
-  "storage": "none",
-  "nav": { "label": "My App" },
-  "icon": "🔧"
+  "storage": "db",
+  "db_encryption": "off",
+  "row_policies": {
+    "rewards": { "kind": "adult_writable" },
+    "redemptions": {
+      "kind": "owner_only",
+      "member_column": "member_id",
+      "member_can_update": false
+    }
+  },
+  "publishes": [
+    "reward.available",
+    "reward.redeemed",
+    "privilege.earned"
+  ],
+  "alert_on": [
+    "reward.available",
+    "reward.redeemed",
+    "privilege.earned"
+  ],
+  "subscribes_to": [
+    "chore.completed",
+    "chore.streak",
+    "allowance.earned"
+  ],
+  "publish_acls": {
+    "reward.available": { "require_role": "adult" },
+    "reward.redeemed": { "require_role": "adult" },
+    "privilege.earned": { "require_role": "adult" }
+  },
+  "exports": [
+    "reward-catalog",
+    "kid-motivation"
+  ],
+  "nav": { "label": "Rewards" },
+  "widget": {
+    "label": "Rewards",
+    "size": "small"
+  },
+  "resource_limits": {
+    "max_db_bytes": 52428800
+  },
+  "icon": "🎁"
 }
