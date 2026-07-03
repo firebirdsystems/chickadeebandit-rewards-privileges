@@ -81,7 +81,8 @@ const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB = window.__DB_URL ?? "";
 const EVENTS = window.__EVENTS_URL ?? "/api/events";
 const ACTIVITY = window.__ACTIVITY_URL ?? "";
-const ME = window.__CURRENT_MEMBER ?? null;
+const LOCAL_DEMO = !window.__CURRENT_MEMBER;
+const ME = window.__CURRENT_MEMBER ?? { id:"adult-1", name:"Alex", role:"adult" };
 
 let members = [];
 let rewards = [];
@@ -117,6 +118,22 @@ async function loadMembers() {
 }
 
 async function loadData() {
+  if (!DB) {
+    if (rewards.length === 0) {
+      rewards = [
+        { id:"demo-movie", title:"Friday movie choice", description:"Pick the family movie this Friday.", kind:"privilege", cost_points:25, status:"active", created_at:new Date().toISOString() },
+        { id:"demo-game", title:"Extra game time", description:"Redeem for 30 minutes of bonus game time.", kind:"reward", cost_points:40, status:"active", created_at:new Date().toISOString() },
+      ];
+    }
+    if (choreEvents.length === 0) {
+      choreEvents = [
+        { type:"chore.completed", payload:{ member_id:"kid-1", points:10 } },
+        { type:"chore.completed", payload:{ member_id:"kid-1", points:10 } },
+        { type:"chore.completed", payload:{ member_id:"kid-1", points:5 } },
+      ];
+    }
+    return;
+  }
   rewards = (await db(`SELECT * FROM app_rewards_privileges__rewards WHERE status = 'active' ORDER BY created_at`)).rows ?? [];
   redemptions = (await db(`SELECT * FROM app_rewards_privileges__redemptions ORDER BY requested_at DESC`)).rows ?? [];
   const res = await fetch(`${EVENTS}?type=chore.completed&limit=500`).catch(() => null);
@@ -139,6 +156,12 @@ async function addReward() {
   const cost = parseInt(document.getElementById("reward-cost").value, 10);
   if (!title || !cost || cost <= 0) return;
   const id = crypto.randomUUID();
+  if (!DB) {
+    rewards = [...rewards, { id, title, description, kind, cost_points:cost, status:"active", created_by:ME.id, created_at:new Date().toISOString() }];
+    closeModal();
+    render();
+    return;
+  }
   await db(
     `INSERT INTO app_rewards_privileges__rewards (id, title, description, kind, cost_points, status, created_by, created_at)
      VALUES (?, ?, ?, ?, ?, 'active', ?, ?)`,
@@ -155,6 +178,18 @@ async function requestReward(rewardId) {
   const reward = rewards.find(r => r.id === rewardId);
   if (!reward || !ME || isAdult(ME)) return;
   if (!canRedeem(pointsFor(ME.id), reward) || pendingForReward(redemptions, ME.id, rewardId)) return;
+  if (!DB) {
+    redemptions = [{
+      id: crypto.randomUUID(),
+      reward_id: rewardId,
+      member_id: ME.id,
+      cost_points: reward.cost_points,
+      status: "pending",
+      requested_at: new Date().toISOString(),
+    }, ...redemptions];
+    render();
+    return;
+  }
   await db(
     `INSERT INTO app_rewards_privileges__redemptions (id, reward_id, member_id, cost_points, status, requested_at)
      VALUES (?, ?, ?, ?, 'pending', ?)`,
@@ -169,6 +204,16 @@ async function decideRedemption(id, status) {
   const redemption = redemptions.find(r => r.id === id);
   const reward = rewards.find(r => r.id === redemption?.reward_id);
   if (!redemption || !reward) return;
+  if (!DB) {
+    redemptions = redemptions.map(r => r.id === id ? {
+      ...r,
+      status,
+      decided_at: new Date().toISOString(),
+      decided_by: ME.id,
+    } : r);
+    render();
+    return;
+  }
   await db(
     `UPDATE app_rewards_privileges__redemptions SET status = ?, decided_at = ?, decided_by = ? WHERE id = ?`,
     [status, new Date().toISOString(), ME.id ?? "adult", id]
@@ -194,6 +239,11 @@ async function decideRedemption(id, status) {
 
 async function archiveReward(id) {
   if (!isAdult(ME)) return;
+  if (!DB) {
+    rewards = rewards.filter(r => r.id !== id);
+    render();
+    return;
+  }
   await db(`UPDATE app_rewards_privileges__rewards SET status = 'archived' WHERE id = ?`, [id]);
   await loadData();
   render();
@@ -263,13 +313,12 @@ function renderRequests() {
 }
 
 function render() {
-  if (!ME) { document.getElementById("root").innerHTML = `<div class="empty">Please log in.</div>`; return; }
   const memberId = currentKidId();
   const kid = members.find(m => m.id === memberId);
   const points = memberId ? pointsFor(memberId) : 0;
   document.getElementById("root").innerHTML = `
     <header>
-      <div><h1>🎁 Rewards &amp; Privileges</h1><div class="sub">Visible progress toward things kids care about</div></div>
+      <div><h1>🎁 Rewards &amp; Privileges</h1><div class="sub">Visible progress toward things kids care about${LOCAL_DEMO ? " · Demo mode" : ""}</div></div>
       ${isAdult(ME) ? `<button class="btn btn-primary" style="background:#fff;color:var(--accent)" onclick="openRewardModal()">+ Reward</button>` : ""}
     </header>
     ${memberId ? `<div class="points"><div><div class="section-title">Working toward</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div></div><strong>${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
