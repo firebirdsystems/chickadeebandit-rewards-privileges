@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   availablePoints,
   canRedeem,
+  combineRedemptions,
   pendingForReward,
   pointsFromChoreEvents,
   rewardProgress,
@@ -29,6 +30,22 @@ describe("reward progress logic", () => {
     ];
     expect(spentPoints(redemptions, "kid-1")).toBe(12);
     expect(availablePoints(events, redemptions, "kid-1")).toBe(3);
+  });
+
+  it("derives redemption cost and status from rewards and adult decisions", () => {
+    const rewards = [{ id: "r1", cost_points: 12, status: "active" }];
+    const requests = [
+      { id: "req-1", reward_id: "r1", member_id: "kid-1", cost_points: 1, status: "approved", requested_at: "2026-07-02T00:00:00.000Z" },
+      { id: "req-2", reward_id: "missing", member_id: "kid-1", requested_at: "2026-07-02T00:00:00.000Z" },
+    ];
+    const decisions = [
+      { id: "dec-1", request_id: "req-1", status: "approved", decided_at: "2026-07-02T01:00:00.000Z", decided_by: "adult-1" },
+    ];
+
+    expect(combineRedemptions(rewards, requests, decisions)).toEqual([
+      expect.objectContaining({ id: "req-1", cost_points: 12, status: "approved", reward_available: true }),
+      expect.objectContaining({ id: "req-2", cost_points: 0, status: "pending", reward_available: false }),
+    ]);
   });
 
   it("calculates clamped progress and redeemability", () => {

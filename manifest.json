@@ -1,15 +1,14 @@
 {
   "id": "rewards-privileges",
-  "name": "Rewards & Privileges",
+  "name": "Rewards",
   "version": "1.0.0",
-  "description": "A lightweight motivation layer for kids: adults define redeemable rewards and privileges, kids see what they are working toward, and approved redemptions celebrate effort without making every chore about money.",
+  "description": "A lightweight motivation layer for kids: adults define redeemable rewards, kids see what they are working toward, and approved redemptions celebrate effort without making every chore about money.",
   "entrypoint": "index.html",
   "runtime": "static",
   "category": "family",
   "tags": [
     "kids",
     "rewards",
-    "privileges",
     "motivation",
     "chores",
     "allowance"
@@ -28,21 +27,23 @@
   "db_encryption": "off",
   "row_policies": {
     "rewards": { "kind": "adult_writable" },
-    "redemptions": {
+    "redemption_requests": {
       "kind": "owner_only",
       "member_column": "member_id",
       "member_can_update": false
+    },
+    "redemption_decisions": {
+      "kind": "adult_writable",
+      "member_read_column": "member_id"
     }
   },
   "publishes": [
     "reward.available",
-    "reward.redeemed",
-    "privilege.earned"
+    "reward.redeemed"
   ],
   "alert_on": [
     "reward.available",
-    "reward.redeemed",
-    "privilege.earned"
+    "reward.redeemed"
   ],
   "subscribes_to": [
     "chore.completed",
@@ -51,8 +52,7 @@
   ],
   "publish_acls": {
     "reward.available": { "require_role": "adult" },
-    "reward.redeemed": { "require_role": "adult" },
-    "privilege.earned": { "require_role": "adult" }
+    "reward.redeemed": { "require_role": "adult" }
   },
   "exports": [
     "reward-catalog",

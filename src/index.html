@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rewards & Privileges</title>
+  <title>Rewards</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -43,7 +43,6 @@
     .reward { padding:14px; }
     .reward-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:8px; }
     .reward h3 { font-size:1rem; }
-    .kind { font-size:.7rem; font-weight:800; text-transform:uppercase; color:var(--amber); background:var(--amber-light); border-radius:999px; padding:2px 7px; white-space:nowrap; }
     .desc { color:var(--muted); font-size:.84rem; min-height:2.4em; }
     .bar { height:8px; border-radius:999px; background:var(--border); overflow:hidden; margin:12px 0 6px; }
     .fill { height:100%; background:var(--green); border-radius:inherit; }
@@ -57,6 +56,10 @@
     .tabs { display:flex; gap:4px; background:var(--border); border-radius:10px; padding:3px; margin-bottom:14px; }
     .tab { flex:1; padding:7px; border:0; border-radius:8px; background:transparent; color:var(--muted); font-weight:800; cursor:pointer; }
     .tab.active { background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+    .selector { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-bottom:14px; }
+    .selector-btn { justify-content:space-between; background:#fff; color:var(--text); border:1.5px solid var(--border); }
+    .selector-btn.active { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-light); }
+    .notice { border-left:4px solid var(--amber); }
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
     @media (min-width:480px) { .modal-backdrop { align-items:center; padding:20px; } }
     .modal { background:#fff; width:100%; max-width:480px; padding:22px; border-radius:var(--radius) var(--radius) 0 0; }
@@ -74,20 +77,23 @@
 <div class="app"><div id="root" class="loading">Loading...</div></div>
 
 <script type="module">
-import { memberColor, initial, esc, isAdult } from "/hub-sdk.js";
-import { availablePoints, rewardProgress, canRedeem, pendingForReward } from "./logic.js";
+import { esc, isAdult } from "/hub-sdk.js";
+import { availablePoints, combineRedemptions, rewardProgress, canRedeem, pendingForReward } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB = window.__DB_URL ?? "";
 const EVENTS = window.__EVENTS_URL ?? "/api/events";
 const ACTIVITY = window.__ACTIVITY_URL ?? "";
 const LOCAL_DEMO = !window.__CURRENT_MEMBER;
-const ME = window.__CURRENT_MEMBER ?? { id:"adult-1", name:"Alex", role:"adult" };
+let ME = window.__CURRENT_MEMBER ?? { id:"adult-1", name:"Alex", role:"adult" };
 
 let members = [];
 let rewards = [];
+let redemptionRequests = [];
+let redemptionDecisions = [];
 let redemptions = [];
 let choreEvents = [];
+let selectedKidId = null;
 let tab = "rewards";
 let modalEl = null;
 
@@ -108,7 +114,11 @@ async function logActivity(type, description, metadata = {}) {
 
 async function loadMembers() {
   if (!CONTEXT) {
-    members = [{ id:"adult-1", name:"Alex", role:"adult" }, { id:"kid-1", name:"Jordan", role:"child" }];
+    members = [
+      { id:"adult-1", name:"Alex", role:"adult" },
+      { id:"kid-1", name:"Jordan", role:"child" },
+      { id:"kid-2", name:"Casey", role:"child" },
+    ];
     return;
   }
   try {
@@ -121,8 +131,8 @@ async function loadData() {
   if (!DB) {
     if (rewards.length === 0) {
       rewards = [
-        { id:"demo-movie", title:"Friday movie choice", description:"Pick the family movie this Friday.", kind:"privilege", cost_points:25, status:"active", created_at:new Date().toISOString() },
-        { id:"demo-game", title:"Extra game time", description:"Redeem for 30 minutes of bonus game time.", kind:"reward", cost_points:40, status:"active", created_at:new Date().toISOString() },
+        { id:"demo-movie", title:"Friday movie choice", description:"Pick the family movie this Friday.", cost_points:25, status:"active", created_at:new Date().toISOString() },
+        { id:"demo-game", title:"Extra game time", description:"Redeem for 30 minutes of bonus game time.", cost_points:40, status:"active", created_at:new Date().toISOString() },
       ];
     }
     if (choreEvents.length === 0) {
@@ -130,12 +140,16 @@ async function loadData() {
         { type:"chore.completed", payload:{ member_id:"kid-1", points:10 } },
         { type:"chore.completed", payload:{ member_id:"kid-1", points:10 } },
         { type:"chore.completed", payload:{ member_id:"kid-1", points:5 } },
+        { type:"chore.completed", payload:{ member_id:"kid-2", points:15 } },
       ];
     }
+    hydrateRedemptions();
     return;
   }
-  rewards = (await db(`SELECT * FROM app_rewards_privileges__rewards WHERE status = 'active' ORDER BY created_at`)).rows ?? [];
-  redemptions = (await db(`SELECT * FROM app_rewards_privileges__redemptions ORDER BY requested_at DESC`)).rows ?? [];
+  rewards = (await db(`SELECT * FROM app_rewards_privileges__rewards ORDER BY created_at`)).rows ?? [];
+  redemptionRequests = (await db(`SELECT * FROM app_rewards_privileges__redemption_requests ORDER BY requested_at DESC`)).rows ?? [];
+  redemptionDecisions = (await db(`SELECT * FROM app_rewards_privileges__redemption_decisions ORDER BY decided_at DESC`)).rows ?? [];
+  hydrateRedemptions();
   const res = await fetch(`${EVENTS}?type=chore.completed&limit=500`).catch(() => null);
   if (res?.ok) {
     const data = await res.json();
@@ -143,31 +157,39 @@ async function loadData() {
   }
 }
 
+function hydrateRedemptions() {
+  redemptions = combineRedemptions(rewards, redemptionRequests, redemptionDecisions);
+}
+
 function kidList() { return members.filter(m => !isAdult(m)); }
 function memberName(id) { return members.find(m => m.id === id)?.name ?? "Someone"; }
 function pointsFor(memberId) { return availablePoints(choreEvents, redemptions, memberId); }
-function currentKidId() { return isAdult(ME) ? (kidList()[0]?.id ?? ME?.id) : ME?.id; }
+function currentKidId() {
+  if (!isAdult(ME)) return ME?.id;
+  const kids = kidList();
+  if (!selectedKidId || !kids.some(kid => kid.id === selectedKidId)) selectedKidId = kids[0]?.id ?? ME?.id;
+  return selectedKidId;
+}
 
 async function addReward() {
   if (!isAdult(ME)) return;
   const title = document.getElementById("reward-title").value.trim();
   const description = document.getElementById("reward-description").value.trim();
-  const kind = document.getElementById("reward-kind").value;
   const cost = parseInt(document.getElementById("reward-cost").value, 10);
   if (!title || !cost || cost <= 0) return;
   const id = crypto.randomUUID();
   if (!DB) {
-    rewards = [...rewards, { id, title, description, kind, cost_points:cost, status:"active", created_by:ME.id, created_at:new Date().toISOString() }];
+    rewards = [...rewards, { id, title, description, cost_points:cost, status:"active", created_by:ME.id, created_at:new Date().toISOString() }];
     closeModal();
     render();
     return;
   }
   await db(
-    `INSERT INTO app_rewards_privileges__rewards (id, title, description, kind, cost_points, status, created_by, created_at)
-     VALUES (?, ?, ?, ?, ?, 'active', ?, ?)`,
-    [id, title, description, kind, cost, ME.id ?? "adult", new Date().toISOString()]
+    `INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at)
+     VALUES (?, ?, ?, ?, 'active', ?, ?)`,
+    [id, title, description, cost, ME.id ?? "adult", new Date().toISOString()]
   );
-  await publishEvent("reward.available", id, { reward_id:id, title, kind, cost_points:cost });
+  await publishEvent("reward.available", id, { reward_id:id, title, cost_points:cost });
   await logActivity("reward_available", `New reward available: ${title}`, { rewardId:id });
   closeModal();
   await loadData();
@@ -175,25 +197,24 @@ async function addReward() {
 }
 
 async function requestReward(rewardId) {
-  const reward = rewards.find(r => r.id === rewardId);
+  const reward = rewards.find(r => r.id === rewardId && r.status === "active");
   if (!reward || !ME || isAdult(ME)) return;
   if (!canRedeem(pointsFor(ME.id), reward) || pendingForReward(redemptions, ME.id, rewardId)) return;
   if (!DB) {
-    redemptions = [{
+    redemptionRequests = [{
       id: crypto.randomUUID(),
       reward_id: rewardId,
       member_id: ME.id,
-      cost_points: reward.cost_points,
-      status: "pending",
       requested_at: new Date().toISOString(),
-    }, ...redemptions];
+    }, ...redemptionRequests];
+    hydrateRedemptions();
     render();
     return;
   }
   await db(
-    `INSERT INTO app_rewards_privileges__redemptions (id, reward_id, member_id, cost_points, status, requested_at)
-     VALUES (?, ?, ?, ?, 'pending', ?)`,
-    [crypto.randomUUID(), rewardId, ME.id, reward.cost_points, new Date().toISOString()]
+    `INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at)
+     VALUES (?, ?, ?, ?)`,
+    [crypto.randomUUID(), rewardId, ME.id, new Date().toISOString()]
   );
   await loadData();
   render();
@@ -203,32 +224,38 @@ async function decideRedemption(id, status) {
   if (!isAdult(ME)) return;
   const redemption = redemptions.find(r => r.id === id);
   const reward = rewards.find(r => r.id === redemption?.reward_id);
-  if (!redemption || !reward) return;
+  if (!redemption || !reward || redemption.status !== "pending" || reward.status !== "active") return;
   if (!DB) {
-    redemptions = redemptions.map(r => r.id === id ? {
-      ...r,
-      status,
-      decided_at: new Date().toISOString(),
-      decided_by: ME.id,
-    } : r);
+    redemptionDecisions = [
+      ...redemptionDecisions.filter(d => d.request_id !== id),
+      {
+        id: crypto.randomUUID(),
+        request_id: id,
+        reward_id: reward.id,
+        member_id: redemption.member_id,
+        status,
+        decided_at: new Date().toISOString(),
+        decided_by: ME.id,
+      },
+    ];
+    hydrateRedemptions();
     render();
     return;
   }
   await db(
-    `UPDATE app_rewards_privileges__redemptions SET status = ?, decided_at = ?, decided_by = ? WHERE id = ?`,
-    [status, new Date().toISOString(), ME.id ?? "adult", id]
+    `INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [crypto.randomUUID(), id, reward.id, redemption.member_id, status, new Date().toISOString(), ME.id ?? "adult"]
   );
   if (status === "approved") {
-    const type = reward.kind === "privilege" ? "privilege.earned" : "reward.redeemed";
-    await publishEvent(type, redemption.member_id, {
+    await publishEvent("reward.redeemed", redemption.member_id, {
       reward_id: reward.id,
       title: reward.title,
-      kind: reward.kind,
       member_id: redemption.member_id,
       member_name: memberName(redemption.member_id),
       cost_points: redemption.cost_points,
     });
-    await logActivity(type === "privilege.earned" ? "privilege_earned" : "reward_redeemed", `${memberName(redemption.member_id)} redeemed ${reward.title}`, {
+    await logActivity("reward_redeemed", `${memberName(redemption.member_id)} redeemed ${reward.title}`, {
       memberId: redemption.member_id,
       rewardId: reward.id,
     });
@@ -240,7 +267,8 @@ async function decideRedemption(id, status) {
 async function archiveReward(id) {
   if (!isAdult(ME)) return;
   if (!DB) {
-    rewards = rewards.filter(r => r.id !== id);
+    rewards = rewards.map(r => r.id === id ? { ...r, status:"archived" } : r);
+    hydrateRedemptions();
     render();
     return;
   }
@@ -254,9 +282,8 @@ function openRewardModal() {
     <h3>Add Reward</h3>
     <div class="form-group"><label>Title</label><input id="reward-title" type="text" placeholder="Friday movie choice" data-autofocus /></div>
     <div class="form-group"><label>Description</label><textarea id="reward-description" rows="3" placeholder="What does the child get?"></textarea></div>
-    <div class="form-group"><label>Kind</label><select id="reward-kind"><option value="privilege">Privilege</option><option value="reward">Reward</option></select></div>
     <div class="form-group"><label>Cost in chore points</label><input id="reward-cost" type="number" min="1" value="25" /></div>
-    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="addReward()">Save</button></div>
+    <div class="modal-actions"><button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-primary" data-action="add-reward">Save</button></div>
   `);
 }
 
@@ -273,20 +300,21 @@ function closeModal() { modalEl?.remove(); modalEl = null; }
 
 function renderRewardsFor(memberId) {
   const points = pointsFor(memberId);
-  if (rewards.length === 0) return `<div class="empty">No rewards yet. An adult can add the first one.</div>`;
-  return `<div class="grid">${rewards.map(reward => {
+  const activeRewards = rewards.filter(reward => reward.status === "active");
+  if (activeRewards.length === 0) return `<div class="empty">No rewards yet. An adult can add the first one.</div>`;
+  return `<div class="grid">${activeRewards.map(reward => {
     const progress = rewardProgress(points, reward);
     const pending = pendingForReward(redemptions, memberId, reward.id);
     const enough = canRedeem(points, reward);
     return `
       <div class="card reward">
-        <div class="reward-top"><h3>${esc(reward.title)}</h3><span class="kind">${esc(reward.kind)}</span></div>
+        <div class="reward-top"><h3>${esc(reward.title)}</h3></div>
         <div class="desc">${reward.description ? esc(reward.description) : "No description."}</div>
         <div class="bar"><div class="fill" style="width:${progress}%"></div></div>
         <div class="meta"><span>${points}/${reward.cost_points} points</span><span>${progress}%</span></div>
         ${isAdult(ME)
-          ? `<button class="btn btn-ghost btn-sm" onclick="archiveReward('${esc(reward.id)}')">Archive</button>`
-          : `<button class="btn btn-primary btn-sm" ${!enough || pending ? "disabled" : ""} onclick="requestReward('${esc(reward.id)}')">${pending ? "Requested" : enough ? "Redeem" : "Keep going"}</button>`}
+          ? `<button class="btn btn-ghost btn-sm" data-action="archive-reward" data-reward-id="${esc(reward.id)}">Hide reward</button>`
+          : `<button class="btn btn-primary btn-sm" ${!enough || pending ? "disabled" : ""} data-action="request-reward" data-reward-id="${esc(reward.id)}">${pending ? "Requested" : enough ? "Redeem" : "Keep going"}</button>`}
       </div>`;
   }).join("")}</div>`;
 }
@@ -295,7 +323,8 @@ function renderRequests() {
   const rows = redemptions.filter(r => isAdult(ME) || r.member_id === ME?.id);
   if (rows.length === 0) return `<div class="empty">No redemption requests yet.</div>`;
   return rows.map(r => {
-    const reward = rewards.find(x => x.id === r.reward_id) ?? { title:"Archived reward", kind:"reward" };
+    const reward = rewards.find(x => x.id === r.reward_id) ?? { title:"Hidden reward" };
+    const canDecide = isAdult(ME) && r.status === "pending" && r.reward_available;
     return `
       <div class="card request">
         <div>
@@ -304,27 +333,51 @@ function renderRequests() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="status ${esc(r.status)}">${esc(r.status)}</span>
-          ${isAdult(ME) && r.status === "pending" ? `
-            <button class="btn btn-good btn-sm" onclick="decideRedemption('${esc(r.id)}','approved')">Approve</button>
-            <button class="btn btn-danger btn-sm" onclick="decideRedemption('${esc(r.id)}','rejected')">Reject</button>` : ""}
+          ${canDecide ? `
+            <button class="btn btn-good btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="approved">Approve</button>
+            <button class="btn btn-danger btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="rejected">Reject</button>` : ""}
         </div>
       </div>`;
   }).join("");
+}
+
+function renderKidSelector(activeId) {
+  if (!isAdult(ME)) return "";
+  const kids = kidList();
+  if (kids.length <= 1) return "";
+  return `<div class="selector">${kids.map(kid => `
+    <button class="btn selector-btn ${kid.id === activeId ? "active" : ""}" data-action="select-kid" data-member-id="${esc(kid.id)}">
+      <span>${esc(kid.name)}</span><strong>${pointsFor(kid.id)}</strong>
+    </button>
+  `).join("")}</div>`;
+}
+
+function renderDemoSwitcher() {
+  if (!LOCAL_DEMO) return "";
+  return `<div class="selector">${members.map(member => `
+    <button class="btn selector-btn ${member.id === ME?.id ? "active" : ""}" data-action="set-demo-member" data-member-id="${esc(member.id)}">
+      <span>${esc(member.name)}</span><span>${isAdult(member) ? "adult" : "kid"}</span>
+    </button>
+  `).join("")}</div>`;
 }
 
 function render() {
   const memberId = currentKidId();
   const kid = members.find(m => m.id === memberId);
   const points = memberId ? pointsFor(memberId) : 0;
+  const pendingCount = redemptions.filter(r => r.status === "pending" && (isAdult(ME) || r.member_id === ME?.id)).length;
   document.getElementById("root").innerHTML = `
     <header>
-      <div><h1>🎁 Rewards &amp; Privileges</h1><div class="sub">Visible progress toward things kids care about${LOCAL_DEMO ? " · Demo mode" : ""}</div></div>
-      ${isAdult(ME) ? `<button class="btn btn-primary" style="background:#fff;color:var(--accent)" onclick="openRewardModal()">+ Reward</button>` : ""}
+      <div><h1>🎁 Rewards</h1><div class="sub">Visible progress toward things kids care about${LOCAL_DEMO ? " · Demo mode" : ""}</div></div>
+      ${isAdult(ME) ? `<button class="btn btn-primary" style="background:#fff;color:var(--accent)" data-action="open-reward-modal">+ Reward</button>` : ""}
     </header>
-    ${memberId ? `<div class="points"><div><div class="section-title">Working toward</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div></div><strong>${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
+    ${renderDemoSwitcher()}
+    ${renderKidSelector(memberId)}
+    ${memberId ? `<div class="points"><div><div class="section-title">${isAdult(ME) ? "Viewing rewards for" : "Working toward"}</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div><div style="font-size:.8rem;color:var(--muted)">${isAdult(ME) ? "Kids redeem points; adults approve requests." : "Redeem when you have enough points. Adults approve requests."}</div></div><strong>${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
+    ${isAdult(ME) && pendingCount > 0 && tab !== "requests" ? `<div class="card notice"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>${pendingCount} pending request${pendingCount === 1 ? "" : "s"}</strong><button class="btn btn-primary btn-sm" data-action="set-tab" data-tab="requests">Review</button></div></div>` : ""}
     <div class="tabs">
-      <button class="tab ${tab === "rewards" ? "active" : ""}" onclick="setTab('rewards')">Rewards</button>
-      <button class="tab ${tab === "requests" ? "active" : ""}" onclick="setTab('requests')">Requests</button>
+      <button class="tab ${tab === "rewards" ? "active" : ""}" data-action="set-tab" data-tab="rewards">Rewards</button>
+      <button class="tab ${tab === "requests" ? "active" : ""}" data-action="set-tab" data-tab="requests">Requests${pendingCount ? ` (${pendingCount})` : ""}</button>
     </div>
     ${tab === "rewards" && memberId ? renderRewardsFor(memberId) : renderRequests()}
   `;
@@ -337,6 +390,30 @@ window.decideRedemption = decideRedemption;
 window.archiveReward = archiveReward;
 window.closeModal = closeModal;
 window.setTab = next => { tab = next; render(); };
+window.selectKid = id => { selectedKidId = id; render(); };
+window.setDemoMember = id => {
+  if (!LOCAL_DEMO) return;
+  const member = members.find(m => m.id === id);
+  if (!member) return;
+  ME = member;
+  if (!isAdult(ME)) selectedKidId = ME.id;
+  render();
+};
+
+document.addEventListener("click", event => {
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+  const { action, rewardId, redemptionId, status, memberId, tab: nextTab } = button.dataset;
+  if (action === "open-reward-modal") openRewardModal();
+  if (action === "add-reward") addReward();
+  if (action === "close-modal") closeModal();
+  if (action === "archive-reward" && rewardId) archiveReward(rewardId);
+  if (action === "request-reward" && rewardId) requestReward(rewardId);
+  if (action === "decide-redemption" && redemptionId && status) decideRedemption(redemptionId, status);
+  if (action === "select-kid" && memberId) window.selectKid(memberId);
+  if (action === "set-demo-member" && memberId) window.setDemoMember(memberId);
+  if (action === "set-tab" && nextTab) window.setTab(nextTab);
+});
 
 (async () => {
   await loadMembers();
