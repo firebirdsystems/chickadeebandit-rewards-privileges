@@ -92,7 +92,7 @@ let rewards = [];
 let redemptionRequests = [];
 let redemptionDecisions = [];
 let redemptions = [];
-let choreEvents = [];
+let pointsLedger = [];
 let selectedKidId = null;
 let tab = "rewards";
 let modalEl = null;
@@ -135,12 +135,12 @@ async function loadData() {
         { id:"demo-game", title:"Extra game time", description:"Redeem for 30 minutes of bonus game time.", cost_points:40, status:"active", created_at:new Date().toISOString() },
       ];
     }
-    if (choreEvents.length === 0) {
-      choreEvents = [
-        { type:"chore.completed", payload:{ member_id:"kid-1", points:10 } },
-        { type:"chore.completed", payload:{ member_id:"kid-1", points:10 } },
-        { type:"chore.completed", payload:{ member_id:"kid-1", points:5 } },
-        { type:"chore.completed", payload:{ member_id:"kid-2", points:15 } },
+    if (pointsLedger.length === 0) {
+      pointsLedger = [
+        { event_id:"demo-1", member_id:"kid-1", points:10 },
+        { event_id:"demo-2", member_id:"kid-1", points:10 },
+        { event_id:"demo-3", member_id:"kid-1", points:5 },
+        { event_id:"demo-4", member_id:"kid-2", points:15 },
       ];
     }
     hydrateRedemptions();
@@ -150,11 +150,7 @@ async function loadData() {
   redemptionRequests = (await db(`SELECT * FROM app_rewards_privileges__redemption_requests ORDER BY requested_at DESC`)).rows ?? [];
   redemptionDecisions = (await db(`SELECT * FROM app_rewards_privileges__redemption_decisions ORDER BY decided_at DESC`)).rows ?? [];
   hydrateRedemptions();
-  const res = await fetch(`${EVENTS}?type=chore.completed&limit=500`).catch(() => null);
-  if (res?.ok) {
-    const data = await res.json();
-    choreEvents = Array.isArray(data) ? data : (data.events ?? []);
-  }
+  pointsLedger = (await db(`SELECT event_id, member_id, points FROM app_rewards_privileges__points_ledger`)).rows ?? [];
 }
 
 function hydrateRedemptions() {
@@ -163,7 +159,7 @@ function hydrateRedemptions() {
 
 function kidList() { return members.filter(m => !isAdult(m)); }
 function memberName(id) { return members.find(m => m.id === id)?.name ?? "Someone"; }
-function pointsFor(memberId) { return availablePoints(choreEvents, redemptions, memberId); }
+function pointsFor(memberId) { return availablePoints(pointsLedger, redemptions, memberId); }
 function currentKidId() {
   if (!isAdult(ME)) return ME?.id;
   const kids = kidList();

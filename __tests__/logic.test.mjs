@@ -4,22 +4,21 @@ import {
   canRedeem,
   combineRedemptions,
   pendingForReward,
-  pointsFromChoreEvents,
+  pointsFromLedger,
   rewardProgress,
   spentPoints,
 } from "../src/logic.js";
 
-const events = [
-  { type: "chore.completed", payload: { member_id: "kid-1", points: 5 } },
-  { type: "chore.completed", payload: { member_id: "kid-1", points: 10 } },
-  { type: "chore.completed", payload: { member_id: "kid-2", points: 20 } },
-  { type: "chore.streak", payload: { member_id: "kid-1", points: 100 } },
+const ledger = [
+  { event_id: "e1", member_id: "kid-1", points: 5 },
+  { event_id: "e2", member_id: "kid-1", points: 10 },
+  { event_id: "e3", member_id: "kid-2", points: 20 },
 ];
 
 describe("reward progress logic", () => {
-  it("counts chore completion points for one member", () => {
-    expect(pointsFromChoreEvents(events, "kid-1")).toBe(15);
-    expect(pointsFromChoreEvents(events, "kid-2")).toBe(20);
+  it("sums durable ledger points for one member", () => {
+    expect(pointsFromLedger(ledger, "kid-1")).toBe(15);
+    expect(pointsFromLedger(ledger, "kid-2")).toBe(20);
   });
 
   it("reserves approved and pending redemptions from available points", () => {
@@ -29,7 +28,7 @@ describe("reward progress logic", () => {
       { member_id: "kid-2", status: "approved", cost_points: 20 },
     ];
     expect(spentPoints(redemptions, "kid-1")).toBe(12);
-    expect(availablePoints(events, redemptions, "kid-1")).toBe(3);
+    expect(availablePoints(ledger, redemptions, "kid-1")).toBe(3);
   });
 
   it("derives redemption cost and status from rewards and adult decisions", () => {

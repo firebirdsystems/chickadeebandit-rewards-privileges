@@ -1,7 +1,7 @@
-export function pointsFromChoreEvents(events, memberId) {
-  return events
-    .filter(ev => ev.type === "chore.completed" && ev.payload?.member_id === memberId)
-    .reduce((sum, ev) => sum + Math.max(0, Number(ev.payload?.points ?? 0)), 0);
+export function pointsFromLedger(ledger, memberId) {
+  return ledger
+    .filter(row => row.member_id === memberId)
+    .reduce((sum, row) => sum + Math.max(0, Number(row.points ?? 0)), 0);
 }
 
 export function spentPoints(redemptions, memberId) {
@@ -10,8 +10,8 @@ export function spentPoints(redemptions, memberId) {
     .reduce((sum, r) => sum + Math.max(0, Number(r.cost_points ?? 0)), 0);
 }
 
-export function availablePoints(events, redemptions, memberId) {
-  return Math.max(0, pointsFromChoreEvents(events, memberId) - spentPoints(redemptions, memberId));
+export function availablePoints(ledger, redemptions, memberId) {
+  return Math.max(0, pointsFromLedger(ledger, memberId) - spentPoints(redemptions, memberId));
 }
 
 export function combineRedemptions(rewards, requests, decisions) {

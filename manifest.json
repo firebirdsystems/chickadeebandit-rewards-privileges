@@ -1,7 +1,7 @@
 {
   "id": "rewards-privileges",
   "name": "Rewards",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A lightweight motivation layer for kids: adults define redeemable rewards, kids see what they are working toward, and approved redemptions celebrate effort without making every chore about money.",
   "entrypoint": "index.html",
   "runtime": "static",
@@ -35,6 +35,10 @@
     "redemption_decisions": {
       "kind": "adult_writable",
       "member_read_column": "member_id"
+    },
+    "points_ledger": {
+      "kind": "adult_writable",
+      "member_read_column": "member_id"
     }
   },
   "publishes": [
@@ -54,6 +58,43 @@
     "reward.available": { "require_role": "adult" },
     "reward.redeemed": { "require_role": "adult" }
   },
+  "automation_actions": {
+    "credit_points": {
+      "title": "Award reward points",
+      "description": "Add points to a member's durable reward-points balance.",
+      "params": {
+        "member_id": { "type": "member", "label": "Whose points", "required": true },
+        "points": { "type": "integer", "label": "Points", "required": true, "min": 1 }
+      },
+      "dedupe": { "table": "points_ledger", "column": "event_id" },
+      "steps": [
+        {
+          "op": "insert",
+          "table": "points_ledger",
+          "on_conflict": "ignore",
+          "values": {
+            "event_id": "$event_id",
+            "member_id": ":member_id",
+            "points": ":points",
+            "earned_at": "$now"
+          }
+        }
+      ]
+    }
+  },
+  "suggested_automations": [
+    {
+      "title": "Award points when a chore is completed",
+      "description": "Every completed chore adds its point value to the member's reward-points balance. These points persist so kids can save toward bigger rewards.",
+      "trigger_event": "chore.completed",
+      "target_app_id": "rewards-privileges",
+      "action_id": "credit_points",
+      "param_map": {
+        "member_id": { "kind": "payload_field", "value": "member_id" },
+        "points": { "kind": "payload_field", "value": "points" }
+      }
+    }
+  ],
   "exports": [
     "reward-catalog",
     "kid-motivation"
