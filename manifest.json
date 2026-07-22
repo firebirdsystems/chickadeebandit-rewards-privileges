@@ -1,5 +1,6 @@
 {
   "id": "rewards-privileges",
+  "contexts": ["household", "shared_space"],
   "name": "Rewards",
   "version": "1.1.0",
   "description": "A lightweight motivation layer for kids: adults define redeemable rewards, kids see what they are working toward, and approved redemptions celebrate effort without making every chore about money.",
