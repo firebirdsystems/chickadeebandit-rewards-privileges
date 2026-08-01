@@ -78,7 +78,7 @@
 
 <script type="module">
 import { esc, isAdult } from "/hub-sdk.js";
-import { availablePoints, combineRedemptions, rewardProgress, canRedeem, pendingForReward } from "./logic.js";
+import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB = window.__DB_URL ?? "";
@@ -92,7 +92,8 @@ let rewards = [];
 let redemptionRequests = [];
 let redemptionDecisions = [];
 let redemptions = [];
-let pointsLedger = [];
+let pointsLedger = [];        // demo mode only — live mode never fetches ledger rows
+let earnedByMember = new Map();  // member_id -> rollup opening + SUM(live ledger tail)
 let selectedKidId = null;
 let tab = "rewards";
 let modalEl = null;
@@ -143,6 +144,7 @@ async function loadData() {
         { event_id:"demo-4", member_id:"kid-2", points:15 },
       ];
     }
+    earnedByMember = new Map(members.map(m => [m.id, pointsFromLedger(pointsLedger, m.id)]));
     hydrateRedemptions();
     return;
   }
@@ -150,7 +152,17 @@ async function loadData() {
   redemptionRequests = (await db(`SELECT * FROM app_rewards_privileges__redemption_requests ORDER BY requested_at DESC`)).rows ?? [];
   redemptionDecisions = (await db(`SELECT * FROM app_rewards_privileges__redemption_decisions ORDER BY decided_at DESC`)).rows ?? [];
   hydrateRedemptions();
-  pointsLedger = (await db(`SELECT event_id, member_id, points FROM app_rewards_privileges__points_ledger`)).rows ?? [];
+  // Earned points, aggregated in SQL: the retention rollup's opening balance
+  // plus the live ledger tail. The client used to fetch EVERY ledger row and
+  // sum in JS — unbounded over years, and it blocked retention outright
+  // (expiring rows silently shrank balances). The runner now folds expiring
+  // rows into points_rollup transactionally, so this total is stable across
+  // expiry, and the wire cost is one row per member forever.
+  earnedByMember = new Map();
+  const tail = (await db(`SELECT member_id, COALESCE(SUM(points), 0) AS earned FROM app_rewards_privileges__points_ledger GROUP BY member_id`)).rows ?? [];
+  for (const row of tail) earnedByMember.set(row.member_id, Math.max(0, Number(row.earned ?? 0)));
+  const rollup = (await db(`SELECT member_id, points FROM app_rewards_privileges__points_rollup`)).rows ?? [];
+  for (const row of rollup) earnedByMember.set(row.member_id, (earnedByMember.get(row.member_id) ?? 0) + Math.max(0, Number(row.points ?? 0)));
 }
 
 function hydrateRedemptions() {
@@ -159,7 +171,7 @@ function hydrateRedemptions() {
 
 function kidList() { return members.filter(m => !isAdult(m)); }
 function memberName(id) { return members.find(m => m.id === id)?.name ?? "Someone"; }
-function pointsFor(memberId) { return availablePoints(pointsLedger, redemptions, memberId); }
+function pointsFor(memberId) { return availablePointsFromEarned(earnedByMember, redemptions, memberId); }
 function currentKidId() {
   if (!isAdult(ME)) return ME?.id;
   const kids = kidList();

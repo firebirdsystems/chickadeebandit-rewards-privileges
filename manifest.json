@@ -49,6 +49,11 @@
         "column": "member_id",
         "on_removed": "delete",
         "id_column": "event_id"
+      },
+      "points_rollup": {
+        "column": "member_id",
+        "on_removed": "delete",
+        "id_column": "rowid"
       }
     },
   "row_policies": {
@@ -63,6 +68,22 @@
       "member_read_column": "member_id"
     },
     "points_ledger": {
+      "kind": "adult_writable",
+      "member_read_column": "member_id",
+      "retain_days": {
+        "default": 730,
+        "timestamp_column": "earned_at",
+        "id_column": "event_id",
+        "override_key": "points_history",
+        "fold": {
+          "into_table": "points_rollup",
+          "key_columns": { "member_id": "member_id" },
+          "sum_columns": { "points": "points" },
+          "folded_through_column": "folded_through_at"
+        }
+      }
+    },
+    "points_rollup": {
       "kind": "adult_writable",
       "member_read_column": "member_id"
     }

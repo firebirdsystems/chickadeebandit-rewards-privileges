@@ -14,6 +14,18 @@ export function availablePoints(ledger, redemptions, memberId) {
   return Math.max(0, pointsFromLedger(ledger, memberId) - spentPoints(redemptions, memberId));
 }
 
+/**
+ * Balance from pre-aggregated earnings: `earnedByMember` maps member_id to
+ * rollup opening points + SUM of the live ledger tail, both computed in SQL.
+ * The client no longer fetches ledger rows at all — the ledger expires at the
+ * retention window and the runner folds expiring rows into the rollup in the
+ * same transaction, so this total never moves when history ages out.
+ */
+export function availablePointsFromEarned(earnedByMember, redemptions, memberId) {
+  const earned = Math.max(0, Number(earnedByMember.get(memberId) ?? 0));
+  return Math.max(0, earned - spentPoints(redemptions, memberId));
+}
+
 export function combineRedemptions(rewards, requests, decisions) {
   const rewardsById = new Map(rewards.map(reward => [reward.id, reward]));
   const decisionsByRequest = new Map(decisions.map(decision => [decision.request_id, decision]));
