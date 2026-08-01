@@ -26,6 +26,31 @@
   },
   "storage": "db",
   "db_encryption": "off",
+    "member_references": {
+      "rewards": {
+        "column": "created_by",
+        "on_removed": "keep"
+      },
+      "redemption_requests": {
+        "column": "member_id",
+        "on_removed": "delete"
+      },
+      "redemption_decisions": [
+        {
+          "column": "member_id",
+          "on_removed": "delete"
+        },
+        {
+          "column": "decided_by",
+          "on_removed": "keep"
+        }
+      ],
+      "points_ledger": {
+        "column": "member_id",
+        "on_removed": "delete",
+        "id_column": "event_id"
+      }
+    },
   "row_policies": {
     "rewards": { "kind": "adult_writable" },
     "redemption_requests": {
