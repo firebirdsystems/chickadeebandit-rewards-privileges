@@ -6,7 +6,7 @@ import {
   pendingForReward,
   pointsFromLedger,
   rewardProgress,
-  spentPoints,
+  spentPoints, searchableFields,
 } from "../src/logic.js";
 
 const ledger = [
@@ -62,5 +62,12 @@ describe("reward progress logic", () => {
     ];
     expect(pendingForReward(redemptions, "kid-1", "r1")).toBe(true);
     expect(pendingForReward(redemptions, "kid-1", "r2")).toBe(false);
+  });
+});
+
+describe("searchableFields", () => {
+  it("matches on the description, which says what the reward gets you", () => {
+    expect(searchableFields({ title: "Late night", description: "stay up an extra hour on Friday" }))
+      .toContain("stay up an extra hour on Friday");
   });
 });

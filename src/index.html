@@ -70,6 +70,13 @@
     .form-group input, .form-group textarea, .form-group select { width:100%; border:1.5px solid var(--border); border-radius:8px; padding:9px 11px; font:inherit; }
     .modal-actions { display:flex; gap:8px; margin-top:18px; }
     .modal-actions .btn { flex:1; }
+    .search-row { margin-bottom: 12px; }
+    .search-input {
+      width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
+      border-radius: 8px; padding: 9px 11px; font: inherit;
+      background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
+    }
+    .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
   </style>
   <base href="/run/rewards-privileges/" />
 </head>
@@ -77,8 +84,8 @@
 <div class="app"><div id="root" class="loading">Loading...</div></div>
 
 <script type="module">
-import { esc, isAdult } from "/hub-sdk.js";
-import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward } from "./logic.js";
+import { esc, isAdult, searchMatch } from "/hub-sdk.js";
+import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward, searchableFields } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB = window.__DB_URL ?? "";
@@ -89,6 +96,7 @@ let ME = window.__CURRENT_MEMBER ?? { id:"adult-1", name:"Alex", role:"adult" };
 
 let members = [];
 let rewards = [];
+let searchQ = "";       // in-app search (see logic.js searchableFields)
 let redemptionRequests = [];
 let redemptionDecisions = [];
 let redemptions = [];
@@ -308,9 +316,14 @@ function closeModal() { modalEl?.remove(); modalEl = null; }
 
 function renderRewardsFor(memberId) {
   const points = pointsFor(memberId);
-  const activeRewards = rewards.filter(reward => reward.status === "active");
-  if (activeRewards.length === 0) return `<div class="empty">No rewards yet. An adult can add the first one.</div>`;
-  return `<div class="grid">${activeRewards.map(reward => {
+  const allActive = rewards.filter(reward => reward.status === "active");
+  if (allActive.length === 0) return `<div class="empty">No rewards yet. An adult can add the first one.</div>`;
+  const activeRewards = searchQ
+    ? allActive.filter(r => searchMatch(searchQ, searchableFields(r)))
+    : allActive;
+  const searchRow = `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search rewards…" aria-label="Search rewards" value="${esc(searchQ)}" /></div>`;
+  if (activeRewards.length === 0) return `${searchRow}<div class="empty">No rewards match "${esc(searchQ)}".</div>`;
+  return `${searchRow}<div class="grid">${activeRewards.map(reward => {
     const progress = rewardProgress(points, reward);
     const pending = pendingForReward(redemptions, memberId, reward.id);
     const enough = canRedeem(points, reward);
@@ -368,6 +381,16 @@ function renderDemoSwitcher() {
     </button>
   `).join("")}</div>`;
 }
+
+// render() rewrites the whole view, so put the caret back after typing.
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "search") return;
+  searchQ = e.target.value;
+  const caret = e.target.selectionStart;
+  render();
+  const next = document.getElementById("search");
+  if (next) { next.focus(); next.setSelectionRange(caret, caret); }
+});
 
 function render() {
   const memberId = currentKidId();

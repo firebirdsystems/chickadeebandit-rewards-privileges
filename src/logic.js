@@ -66,3 +66,12 @@ export function pendingForReward(redemptions, memberId, rewardId) {
     r.status === "pending"
   );
 }
+
+/**
+ * Fields the in-app search matches against (see hub-sdk `searchMatch`).
+ * The description spells out what a reward actually gets you, which
+ * is what a child scans the catalogue for.
+ */
+export function searchableFields(item) {
+  return [item.title, item.description];
+}
