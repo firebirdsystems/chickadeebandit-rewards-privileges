@@ -25,6 +25,13 @@
     "requires_approval": false
   },
   "storage": "db",
+  "preload": {
+    "rewards": {"sql": "SELECT * FROM app_rewards_privileges__rewards ORDER BY created_at"},
+    "redemption_requests": {"sql": "SELECT * FROM app_rewards_privileges__redemption_requests ORDER BY requested_at DESC"},
+    "redemption_decisions": {"sql": "SELECT * FROM app_rewards_privileges__redemption_decisions ORDER BY decided_at DESC"},
+    "points_ledger": {"sql": "SELECT member_id, COALESCE(SUM(points), 0) AS earned FROM app_rewards_privileges__points_ledger GROUP BY member_id"},
+    "points_rollup": {"sql": "SELECT member_id, points FROM app_rewards_privileges__points_rollup"}
+  },
   "db_encryption": "off",
     "member_references": {
       "rewards": {
