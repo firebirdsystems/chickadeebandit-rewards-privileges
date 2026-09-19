@@ -13,23 +13,23 @@
       --text: var(--hub-text, #000000);
       --muted: var(--hub-text-muted, #6b7280);
       --accent: var(--hub-primary, #111827);
-      --accent-light: #f3f4f6;
-      --green: #16a34a;
-      --green-light: #dcfce7;
-      --amber: #d97706;
-      --amber-light: #fef3c7;
-      --red: #dc2626;
+      --accent-light: var(--bg);
+      --green: var(--hub-tint-success-fg, #16a34a);
+      --green-light: var(--hub-tint-success, #dcfce7);
+      --amber: var(--hub-tint-warning-fg, #d97706);
+      --amber-light: var(--hub-tint-warning, #fef3c7);
+      --red: var(--hub-tint-danger-fg, #dc2626);
       --radius: var(--hub-radius, .5rem);
       --shadow: 0 1px 3px rgba(0,0,0,.07);
     }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: var(--hub-font-size, 15px); line-height: 1.5; }
     .app { max-width: 720px; margin: 0 auto; padding: 16px; }
-    header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; padding:14px 18px; border-radius:var(--radius); background:var(--accent); color:#fff; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; padding:14px 18px; border-radius:var(--radius); background:var(--accent); color:var(--hub-primary-fg, #fff); }
     h1 { font-size:1.2rem; }
     .sub { font-size:.8rem; opacity:.75; }
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:8px 14px; border:0; border-radius:8px; font-weight:700; font-size:.86rem; cursor:pointer; }
     .btn:disabled { opacity:.5; cursor:default; }
-    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary { background:var(--accent); color:var(--hub-primary-fg, #fff); }
     .btn-ghost { background:transparent; color:var(--muted); border:1.5px solid var(--border); }
     .btn-good { background:var(--green); color:#fff; }
     .btn-danger { background:var(--red); color:#fff; }
@@ -51,18 +51,18 @@
     .status { font-size:.74rem; font-weight:800; text-transform:uppercase; border-radius:999px; padding:2px 7px; }
     .status.pending { color:var(--amber); background:var(--amber-light); }
     .status.approved { color:var(--green); background:var(--green-light); }
-    .status.rejected { color:var(--red); background:#fee2e2; }
+    .status.rejected { color:var(--red); background:var(--hub-tint-danger, #fee2e2); }
     .empty, .loading { text-align:center; padding:36px 16px; color:var(--muted); }
     .tabs { display:flex; gap:4px; background:var(--border); border-radius:10px; padding:3px; margin-bottom:14px; }
     .tab { flex:1; padding:7px; border:0; border-radius:8px; background:transparent; color:var(--muted); font-weight:800; cursor:pointer; }
-    .tab.active { background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+    .tab.active { background:var(--card); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.08); }
     .selector { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-bottom:14px; }
-    .selector-btn { justify-content:space-between; background:#fff; color:var(--text); border:1.5px solid var(--border); }
+    .selector-btn { justify-content:space-between; background:var(--card); color:var(--text); border:1.5px solid var(--border); }
     .selector-btn.active { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-light); }
     .notice { border-left:4px solid var(--amber); }
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
     @media (min-width:480px) { .modal-backdrop { align-items:center; padding:20px; } }
-    .modal { background:#fff; width:100%; max-width:480px; padding:22px; border-radius:var(--radius) var(--radius) 0 0; }
+    .modal { background:var(--card); width:100%; max-width:480px; padding:22px; border-radius:var(--radius) var(--radius) 0 0; }
     @media (min-width:480px) { .modal { border-radius:var(--radius); } }
     .modal h3 { margin-bottom:16px; }
     .form-group { margin-bottom:13px; }
