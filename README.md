@@ -1,5 +1,7 @@
 # Rewards
 
+A [Chickadee Bandit](https://chickadeebandit.com/app-library/rewards-privileges) app.
+
 A Chickadee Bandit family app that gives chores a motivating feedback loop.
 
 Adults create redeemable rewards, kids see their chore-point progress, and approved redemptions publish recognition events back to the hub.
