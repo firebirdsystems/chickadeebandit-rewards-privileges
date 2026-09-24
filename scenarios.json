@@ -1,0 +1,190 @@
+{
+  "scenarios": [
+    {
+      "name": "a child sees only their own points and cannot mint points; an adult sees everyone's",
+      "members": { "parent": "adult", "kidA": "child", "kidB": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES ('e1', ?, 10, '2026-01-02T00:00:00Z'), ('e2', ?, 25, '2026-01-02T00:00:00Z')",
+          "params": ["{{kidA}}", "{{kidB}}"]
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "SELECT event_id, points FROM app_rewards_privileges__points_ledger",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "event_id": "e1", "points": 10 }] }
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, ?)",
+          "params": ["forged", "{{kidA}}", 1000, "2026-01-03T00:00:00Z"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "UPDATE app_rewards_privileges__points_ledger SET points = 1000 WHERE event_id = 'e1'",
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT event_id, points FROM app_rewards_privileges__points_ledger ORDER BY event_id",
+          "expect": { "status": 200, "rowCount": 2, "rowsContain": [{ "event_id": "e1", "points": 10 }, { "event_id": "e2", "points": 25 }] }
+        }
+      ]
+    },
+    {
+      "name": "redemption requests are private to the requester, and a child cannot edit a request once made",
+      "members": { "parent": "adult", "kidA": "child", "kidB": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, status, created_by, created_at) VALUES ('rw1', 'Movie night', 20, 'active', 'p', '2026-01-01T00:00:00Z'), ('rw2', 'Cheap treat', 1, 'active', 'p', '2026-01-01T00:00:00Z')"
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, ?)",
+          "params": ["rq1", "rw1", "{{kidA}}", "2026-01-02T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kidB",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_requests",
+          "expect": { "status": 200, "rowCount": 0 }
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "SELECT id, reward_id FROM app_rewards_privileges__redemption_requests",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "rq1", "reward_id": "rw1" }] }
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "UPDATE app_rewards_privileges__redemption_requests SET reward_id = 'rw2' WHERE id = 'rq1'"
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id, reward_id FROM app_rewards_privileges__redemption_requests",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "rq1", "reward_id": "rw1" }] }
+        }
+      ]
+    },
+    {
+      "name": "only an adult decides a redemption, each request is decided once, and a child sees only their own decisions",
+      "members": { "parent": "adult", "kidA": "child", "kidB": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, status, created_by, created_at) VALUES ('rw1', 'Movie night', 20, 'active', 'p', '2026-01-01T00:00:00Z')"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES ('rqA', 'rw1', ?, '2026-01-02T00:00:00Z'), ('rqB', 'rw1', ?, '2026-01-02T00:00:00Z')",
+          "params": ["{{kidA}}", "{{kidB}}"]
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          "params": ["dA", "rqA", "rw1", "{{kidA}}", "approved", "2026-01-03T00:00:00Z", "{{kidA}}"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          "params": ["dA", "rqA", "rw1", "{{kidA}}", "approved", "2026-01-03T00:00:00Z", "{{parent}}"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          "params": ["dA2", "rqA", "rw1", "{{kidA}}", "rejected", "2026-01-03T00:01:00Z", "{{parent}}"],
+          "expect": { "status": 400, "errorIncludes": "UNIQUE constraint failed" }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          "params": ["dB", "rqB", "rw1", "{{kidB}}", "rejected", "2026-01-03T00:00:00Z", "{{parent}}"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "SELECT id, status FROM app_rewards_privileges__redemption_decisions",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "dA", "status": "approved" }] }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_decisions",
+          "expect": { "status": 200, "rowCount": 2 }
+        }
+      ]
+    },
+    {
+      "name": "only adults create rewards, and a reward must cost at least one point",
+      "members": { "parent": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, created_by, created_at) VALUES (?, ?, ?, ?, ?)",
+          "params": ["rw_kid", "Stay up all night", 1, "{{kid}}", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, created_by, created_at) VALUES (?, ?, ?, ?, ?)",
+          "params": ["rw_free", "Free lunch", 0, "{{parent}}", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 400, "errorIncludes": "CHECK constraint failed" }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, created_by, created_at) VALUES (?, ?, ?, ?, ?)",
+          "params": ["rw1", "Extra screen time", 15, "{{parent}}", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "SELECT id, cost_points, status FROM app_rewards_privileges__rewards",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "rw1", "cost_points": 15, "status": "active" }] }
+        }
+      ]
+    },
+    {
+      "name": "only an adult may publish reward events",
+      "members": { "parent": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "publish",
+          "as": "kid",
+          "type": "reward.redeemed",
+          "subject_id": "rw1",
+          "payload": { "title": "Movie night" },
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "publish",
+          "as": "parent",
+          "type": "reward.redeemed",
+          "subject_id": "rw1",
+          "payload": { "title": "Movie night" },
+          "expect": { "status": 201 }
+        }
+      ]
+    }
+  ]
+}
