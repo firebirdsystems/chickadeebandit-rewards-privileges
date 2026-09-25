@@ -103,11 +103,6 @@
     "reward.available",
     "reward.redeemed"
   ],
-  "subscribes_to": [
-    "chore.completed",
-    "chore.streak",
-    "allowance.earned"
-  ],
   "publish_acls": {
     "reward.available": { "require_role": "adult" },
     "reward.redeemed": { "require_role": "adult" }
@@ -141,8 +136,10 @@
       "title": "Award points when a chore is completed",
       "description": "Every completed chore adds its point value to the member's reward-points balance. These points persist so kids can save toward bigger rewards.",
       "trigger_event": "chore.completed",
+      "trigger_app_id": "chore-tracker",
       "target_app_id": "rewards-privileges",
       "action_id": "credit_points",
+      "enable": "automatically",
       "param_map": {
         "member_id": { "kind": "payload_field", "value": "member_id" },
         "points": { "kind": "payload_field", "value": "points" }

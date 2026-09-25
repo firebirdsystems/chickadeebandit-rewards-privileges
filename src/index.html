@@ -84,7 +84,7 @@
 <div class="app"><div id="root" class="loading">Loading...</div></div>
 
 <script type="module">
-import { esc, isAdult, searchMatch } from "/hub-sdk.js";
+import { esc, isAdult, searchMatch, automationStatus } from "/hub-sdk.js";
 import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward, searchableFields } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
@@ -92,6 +92,13 @@ const DB = window.__DB_URL ?? "";
 const EVENTS = window.__EVENTS_URL ?? "/api/events";
 const ACTIVITY = window.__ACTIVITY_URL ?? "";
 const LOCAL_DEMO = !window.__CURRENT_MEMBER;
+const HUB_ORIGIN = window.__HUB_ORIGIN ?? "";
+// Points arrive only through the "Award points when a chore is completed"
+// automation, which the hub runs by itself (manifest `enable: "automatically"`).
+// When it cannot run — Chores is not installed, or an admin switched it off —
+// every balance reads 0, so admins (the people who can fix it, and the only
+// ones the hub answers) are told why instead of guessing.
+let pointsSource = null;   // { state: "off" | "unavailable", title, publishers } or null
 let ME = window.__CURRENT_MEMBER ?? { id:"adult-1", name:"Alex", role:"adult" };
 
 let members = [];
@@ -405,6 +412,7 @@ function render() {
     ${renderDemoSwitcher()}
     ${renderKidSelector(memberId)}
     ${memberId ? `<div class="points"><div><div class="section-title">${isAdult(ME) ? "Viewing rewards for" : "Working toward"}</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div><div style="font-size:.8rem;color:var(--muted)">${isAdult(ME) ? "Kids redeem points; adults approve requests." : "Redeem when you have enough points. Adults approve requests."}</div></div><strong>${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
+    ${renderPointsSourceNotice()}
     ${isAdult(ME) && pendingCount > 0 && tab !== "requests" ? `<div class="card notice"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>${pendingCount} pending request${pendingCount === 1 ? "" : "s"}</strong><button class="btn btn-primary btn-sm" data-action="set-tab" data-tab="requests">Review</button></div></div>` : ""}
     <div class="tabs">
       <button class="tab ${tab === "rewards" ? "active" : ""}" data-action="set-tab" data-tab="rewards">Rewards</button>
@@ -412,6 +420,17 @@ function render() {
     </div>
     ${tab === "rewards" && memberId ? renderRewardsFor(memberId) : renderRequests()}
   `;
+}
+
+function renderPointsSourceNotice() {
+  if (!pointsSource) return "";
+  const settings = HUB_ORIGIN
+    ? ` <a href="${esc(HUB_ORIGIN)}/settings/automations" target="_top">Settings → Automations</a>`
+    : " Settings → Automations";
+  const text = pointsSource.state === "unavailable"
+    ? `Points come from completed chores. Install ${esc(pointsSource.publishers.join(" or ") || "a chores app")} to start earning.`
+    : `Chore points are not being counted: "${esc(pointsSource.title)}" is switched off. Turn it back on in${settings}.`;
+  return `<div class="card notice" role="status"><div class="card-body">${text}</div></div>`;
 }
 
 window.openRewardModal = openRewardModal;
@@ -450,6 +469,14 @@ document.addEventListener("click", event => {
   await loadMembers();
   await loadData();
   render();
+  if (!LOCAL_DEMO && window.__IS_ADMIN) {
+    const list = await automationStatus().catch(() => null);
+    const credit = (list ?? []).find((a) => a.action_id === "credit_points");
+    if (credit && credit.state !== "on") {
+      pointsSource = { state: credit.state, title: credit.title, publishers: credit.publishers ?? [] };
+      render();
+    }
+  }
 })();
 </script>
 </body>
