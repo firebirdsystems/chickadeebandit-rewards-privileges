@@ -1,0 +1,59 @@
+{
+  "scenarios": [
+    {
+      "name": "points credited by automations (ledger rows keyed by event id) render in the kid's balance for the kid and for a parent",
+      "members": {
+        "kid": "child",
+        "parent": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, 15, datetime('now'))",
+          "params": [
+            "evt-chore-completed-1",
+            "{{kid}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, 10, datetime('now'))",
+          "params": [
+            "evt-chore-completed-2",
+            "{{kid}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "kid"
+        },
+        {
+          "action": "waitFor",
+          "as": "kid",
+          "selector": "[data-testid=\"points-balance\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "kid",
+          "selector": "[data-testid=\"points-balance\"]",
+          "text": "25"
+        },
+        {
+          "action": "open",
+          "as": "parent"
+        },
+        {
+          "action": "waitFor",
+          "as": "parent",
+          "selector": "[data-testid=\"points-balance\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"points-balance\"]",
+          "text": "25"
+        }
+      ]
+    }
+  ]
+}

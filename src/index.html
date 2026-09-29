@@ -374,8 +374,8 @@ function renderKidSelector(activeId) {
   const kids = kidList();
   if (kids.length <= 1) return "";
   return `<div class="selector">${kids.map(kid => `
-    <button class="btn selector-btn ${kid.id === activeId ? "active" : ""}" data-action="select-kid" data-member-id="${esc(kid.id)}">
-      <span>${esc(kid.name)}</span><strong>${pointsFor(kid.id)}</strong>
+    <button class="btn selector-btn ${kid.id === activeId ? "active" : ""}" data-action="select-kid" data-testid="kid-select" data-member-id="${esc(kid.id)}">
+      <span>${esc(kid.name)}</span><strong data-testid="kid-select-points">${pointsFor(kid.id)}</strong>
     </button>
   `).join("")}</div>`;
 }
@@ -411,7 +411,7 @@ function render() {
     </header>
     ${renderDemoSwitcher()}
     ${renderKidSelector(memberId)}
-    ${memberId ? `<div class="points"><div><div class="section-title">${isAdult(ME) ? "Viewing rewards for" : "Working toward"}</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div><div style="font-size:.8rem;color:var(--muted)">${isAdult(ME) ? "Kids redeem points; adults approve requests." : "Redeem when you have enough points. Adults approve requests."}</div></div><strong>${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
+    ${memberId ? `<div class="points"><div><div class="section-title">${isAdult(ME) ? "Viewing rewards for" : "Working toward"}</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div><div style="font-size:.8rem;color:var(--muted)">${isAdult(ME) ? "Kids redeem points; adults approve requests." : "Redeem when you have enough points. Adults approve requests."}</div></div><strong data-testid="points-balance" data-member-id="${esc(memberId)}">${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
     ${renderPointsSourceNotice()}
     ${isAdult(ME) && pendingCount > 0 && tab !== "requests" ? `<div class="card notice"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>${pendingCount} pending request${pendingCount === 1 ? "" : "s"}</strong><button class="btn btn-primary btn-sm" data-action="set-tab" data-tab="requests">Review</button></div></div>` : ""}
     <div class="tabs">
