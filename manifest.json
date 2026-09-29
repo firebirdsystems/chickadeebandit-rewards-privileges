@@ -146,10 +146,6 @@
       }
     }
   ],
-  "exports": [
-    "reward-catalog",
-    "kid-motivation"
-  ],
   "nav": { "label": "Rewards" },
   "widget": {
     "label": "Rewards",
