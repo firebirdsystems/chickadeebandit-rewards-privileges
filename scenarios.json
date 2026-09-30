@@ -185,6 +185,195 @@
           "expect": { "status": 201 }
         }
       ]
+    },
+    {
+      "name": "in a shared space a participant adult reads only their own points, rollup and decisions, while the steward reads every member's",
+      "context": "shared_space",
+      "members": { "a": "adult", "b": "adult", "steward": "admin" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, created_by, created_at) VALUES ('rw1', 'Pick the movie', 10, ?, '2026-08-01T09:00:00Z')",
+          "params": ["{{steward}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES ('e-a', ?, 5, '2026-08-02T09:00:00Z')",
+          "params": ["{{a}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES ('e-b', ?, 7, '2026-08-02T09:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_rollup (member_id, points) VALUES (?, 20)",
+          "params": ["{{a}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_rollup (member_id, points) VALUES (?, 30)",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES ('rq-a', 'rw1', ?, '2026-08-03T09:00:00Z')",
+          "params": ["{{a}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES ('rq-b', 'rw1', ?, '2026-08-03T09:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES ('d-a', 'rq-a', 'rw1', ?, 'approved', '2026-08-04T09:00:00Z', ?)",
+          "params": ["{{a}}", "{{steward}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES ('d-b', 'rq-b', 'rw1', ?, 'rejected', '2026-08-04T09:00:00Z', ?)",
+          "params": ["{{b}}", "{{steward}}"]
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "SELECT event_id, points FROM app_rewards_privileges__points_ledger",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "event_id": "e-a", "points": 5 }] }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "SELECT member_id, points FROM app_rewards_privileges__points_rollup",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "member_id": "scn-a", "points": 20 }] }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_decisions",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "d-a" }] }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT event_id FROM app_rewards_privileges__points_ledger ORDER BY event_id",
+          "expect": { "status": 200, "rowCount": 2, "rowsContain": [{ "event_id": "e-a" }, { "event_id": "e-b" }] }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT member_id FROM app_rewards_privileges__points_rollup ORDER BY member_id",
+          "expect": {
+            "status": 200,
+            "rowCount": 2,
+            "rowsContain": [{ "member_id": "scn-a" }, { "member_id": "scn-b" }]
+          }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_decisions ORDER BY id",
+          "expect": { "status": 200, "rowCount": 2, "rowsContain": [{ "id": "d-a" }, { "id": "d-b" }] }
+        }
+      ]
+    },
+    {
+      "name": "in a shared space a participant adult sees only their own redemption requests and is refused removing one, while the steward sees and removes any member's",
+      "context": "shared_space",
+      "members": { "a": "adult", "b": "adult", "steward": "admin" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, created_by, created_at) VALUES ('rw1', 'Pick the movie', 10, ?, '2026-08-01T09:00:00Z')",
+          "params": ["{{steward}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES ('rq-a', 'rw1', ?, '2026-08-03T09:00:00Z')",
+          "params": ["{{a}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES ('rq-b', 'rw1', ?, '2026-08-03T09:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_requests",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "rq-a" }] }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "DELETE FROM app_rewards_privileges__redemption_requests WHERE id = 'rq-b'",
+          "expect": { "status": 403, "errorIncludes": "may only be modified by adults" }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_requests",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "rq-b" }] }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_requests ORDER BY id",
+          "expect": { "status": 200, "rowCount": 2, "rowsContain": [{ "id": "rq-a" }, { "id": "rq-b" }] }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "DELETE FROM app_rewards_privileges__redemption_requests WHERE id = 'rq-b'",
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT id FROM app_rewards_privileges__redemption_requests",
+          "expect": { "status": 200, "rowCount": 0 }
+        }
+      ]
+    },
+    {
+      "name": "in a shared space a participant adult cannot award, strip or rewrite another member's points",
+      "context": "shared_space",
+      "members": { "a": "adult", "b": "adult", "steward": "admin" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, ?)",
+          "params": ["e-b", "{{b}}", 30, "2026-01-01T00:00:00Z"]
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "UPDATE app_rewards_privileges__points_ledger SET points = 0 WHERE event_id = ?",
+          "params": ["e-b"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "DELETE FROM app_rewards_privileges__points_ledger WHERE event_id = ?",
+          "params": ["e-b"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, ?)",
+          "params": ["e-x", "{{b}}", -100, "2026-01-01T00:00:00Z"],
+          "expect": { "status": 403, "errorIncludes": "only create rows for yourself" }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT event_id, points FROM app_rewards_privileges__points_ledger",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "event_id": "e-b", "points": 30 }] }
+        }
+      ]
     }
   ]
 }
