@@ -84,7 +84,7 @@
 <div class="app"><div id="root" class="loading">Loading...</div></div>
 
 <script type="module">
-import { esc, isAdult, searchMatch, automationStatus } from "/hub-sdk.js";
+import { esc, isAdult, searchMatch, automationStatus, glyph } from "/hub-sdk.js";
 import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward, searchableFields } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
@@ -406,7 +406,7 @@ function render() {
   const pendingCount = redemptions.filter(r => r.status === "pending" && (isAdult(ME) || r.member_id === ME?.id)).length;
   document.getElementById("root").innerHTML = `
     <header>
-      <div><h1>🎁 Rewards</h1><div class="sub">Visible progress toward things kids care about${LOCAL_DEMO ? " · Demo mode" : ""}</div></div>
+      <div><h1>${glyph("gift", { accent: "currentColor" })} Rewards</h1><div class="sub">Visible progress toward things kids care about${LOCAL_DEMO ? " · Demo mode" : ""}</div></div>
       ${isAdult(ME) ? `<button class="btn btn-primary" style="background:#fff;color:var(--accent)" data-action="open-reward-modal">+ Reward</button>` : ""}
     </header>
     ${renderDemoSwitcher()}
