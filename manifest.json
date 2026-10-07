@@ -144,6 +144,24 @@
         "member_id": { "kind": "payload_field", "value": "member_id" },
         "points": { "kind": "payload_field", "value": "points" }
       }
+    },
+    {
+      "title": "Award points for a week of practice",
+      "description": "When a member meets a weekly practice goal in Practice Log, add points to their reward-points balance. Ten per goal by default; adjust to taste.",
+      "trigger_event": "practice-log.weekly_goal_met",
+      "trigger_app_id": "practice-log",
+      "target_app_id": "rewards-privileges",
+      "action_id": "credit_points",
+      "param_map": {
+        "member_id": {
+          "kind": "payload_field",
+          "value": "member_id"
+        },
+        "points": {
+          "kind": "const",
+          "value": 10
+        }
+      }
     }
   ],
   "nav": { "label": "Rewards" },
