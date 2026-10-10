@@ -1,0 +1,1626 @@
+{
+ "seed": [
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-120 days','+0 minutes'))",
+   "params": [
+    "perf-reward-movie",
+    "Friday movie choice",
+    "Pick the family movie this Friday.",
+    25,
+    "active",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-116 days','+0 minutes'))",
+   "params": [
+    "perf-reward-game",
+    "Extra game time",
+    "30 minutes of bonus game time.",
+    40,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-112 days','+0 minutes'))",
+   "params": [
+    "perf-reward-dessert",
+    "Dessert of your choice",
+    "Any dessert, within reason.",
+    15,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-108 days','+0 minutes'))",
+   "params": [
+    "perf-reward-latebed",
+    "Stay up 30 minutes late",
+    "Weekends only.",
+    30,
+    "active",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-104 days','+0 minutes'))",
+   "params": [
+    "perf-reward-nochore",
+    "Skip one chore",
+    "A parent does it instead. One per week.",
+    50,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 days','+0 minutes'))",
+   "params": [
+    "perf-reward-sleepover",
+    "Sleepover with a friend",
+    "Needs a week's notice.",
+    120,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-96 days','+0 minutes'))",
+   "params": [
+    "perf-reward-dinner",
+    "Choose what's for dinner",
+    35,
+    "active",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-92 days','+0 minutes'))",
+   "params": [
+    "perf-reward-frontseat",
+    "Front seat for a week",
+    20,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-88 days','+0 minutes'))",
+   "params": [
+    "perf-reward-pocket",
+    "Five in pocket money",
+    "Paid on Saturday.",
+    60,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-84 days','+0 minutes'))",
+   "params": [
+    "perf-reward-cinema",
+    "Trip to the cinema",
+    "Popcorn included.",
+    150,
+    "active",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-80 days','+0 minutes'))",
+   "params": [
+    "perf-reward-playlist",
+    "Car playlist for the day",
+    10,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-76 days','+0 minutes'))",
+   "params": [
+    "perf-reward-bake",
+    "Baking afternoon",
+    "You choose the recipe, we buy the ingredients.",
+    45,
+    "active",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-72 days','+0 minutes'))",
+   "params": [
+    "perf-reward-pool",
+    "Swimming pool trip",
+    "Retired for the winter.",
+    80,
+    "archived",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-68 days','+0 minutes'))",
+   "params": [
+    "perf-reward-toy",
+    "Small toy from the shop",
+    "Replaced by pocket money.",
+    100,
+    "archived",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_rollup (member_id, points, folded_through_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 days','+0 minutes'))",
+   "params": [
+    "{{child}}",
+    420
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_rollup (member_id, points, folded_through_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 days','+0 minutes'))",
+   "params": [
+    "{{child2}}",
+    380
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_rollup (member_id, points, folded_through_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 days','+0 minutes'))",
+   "params": [
+    "{{me}}",
+    60
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-0.2 days','+0 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-001",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1.05 days','-53 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-002",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1.9 days','-106 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-003",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2.75 days','-159 minutes'))",
+   "params": [
+    "perf-evt-task-completed-004",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3.6 days','-212 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-005",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4.45 days','-265 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-006",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5.3 days','-318 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-007",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-6.15 days','-371 minutes'))",
+   "params": [
+    "perf-evt-task-completed-008",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7 days','-24 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-009",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7.85 days','-77 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-010",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-8.7 days','-130 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-011",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-9.549999999999999 days','-183 minutes'))",
+   "params": [
+    "perf-evt-task-completed-012",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10.399999999999999 days','-236 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-013",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11.249999999999998 days','-289 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-014",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12.1 days','-342 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-015",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12.95 days','-395 minutes'))",
+   "params": [
+    "perf-evt-task-completed-016",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-13.799999999999999 days','-48 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-017",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-14.649999999999999 days','-101 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-018",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-15.499999999999998 days','-154 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-019",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-16.349999999999998 days','-207 minutes'))",
+   "params": [
+    "perf-evt-task-completed-020",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-17.2 days','-260 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-021",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18.049999999999997 days','-313 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-022",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18.9 days','-366 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-023",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19.75 days','-19 minutes'))",
+   "params": [
+    "perf-evt-task-completed-024",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20.599999999999998 days','-72 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-025",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-21.45 days','-125 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-026",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-22.299999999999997 days','-178 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-027",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-23.15 days','-231 minutes'))",
+   "params": [
+    "perf-evt-task-completed-028",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-24 days','-284 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-029",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-24.849999999999998 days','-337 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-030",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-25.7 days','-390 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-031",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-26.549999999999997 days','-43 minutes'))",
+   "params": [
+    "perf-evt-task-completed-032",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-27.4 days','-96 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-033",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-28.25 days','-149 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-034",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29.099999999999998 days','-202 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-035",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29.95 days','-255 minutes'))",
+   "params": [
+    "perf-evt-task-completed-036",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30.799999999999997 days','-308 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-037",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-31.65 days','-361 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-038",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-32.5 days','-14 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-039",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33.35 days','-67 minutes'))",
+   "params": [
+    "perf-evt-task-completed-040",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34.2 days','-120 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-041",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35.050000000000004 days','-173 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-042",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35.9 days','-226 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-043",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-36.75 days','-279 minutes'))",
+   "params": [
+    "perf-evt-task-completed-044",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-37.6 days','-332 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-045",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-38.45 days','-385 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-046",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-39.300000000000004 days','-38 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-047",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40.15 days','-91 minutes'))",
+   "params": [
+    "perf-evt-task-completed-048",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-41 days','-144 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-049",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-41.85 days','-197 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-050",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-42.7 days','-250 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-051",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-43.550000000000004 days','-303 minutes'))",
+   "params": [
+    "perf-evt-task-completed-052",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-44.4 days','-356 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-053",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-45.25 days','-9 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-054",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-46.1 days','-62 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-055",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-46.95 days','-115 minutes'))",
+   "params": [
+    "perf-evt-task-completed-056",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47.800000000000004 days','-168 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-057",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48.65 days','-221 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-058",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49.5 days','-274 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-059",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50.35 days','-327 minutes'))",
+   "params": [
+    "perf-evt-task-completed-060",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-51.2 days','-380 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-061",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-52.050000000000004 days','-33 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-062",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-52.9 days','-86 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-063",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-53.75 days','-139 minutes'))",
+   "params": [
+    "perf-evt-task-completed-064",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-54.6 days','-192 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-065",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-55.45 days','-245 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-066",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-56.300000000000004 days','-298 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-067",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-57.15 days','-351 minutes'))",
+   "params": [
+    "perf-evt-task-completed-068",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-58 days','-4 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-069",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-58.85 days','-57 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-070",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-59.7 days','-110 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-071",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-60.550000000000004 days','-163 minutes'))",
+   "params": [
+    "perf-evt-task-completed-072",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61.4 days','-216 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-073",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-62.25 days','-269 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-074",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-63.1 days','-322 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-075",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-63.95 days','-375 minutes'))",
+   "params": [
+    "perf-evt-task-completed-076",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-64.8 days','-28 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-077",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65.65 days','-81 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-078",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-66.5 days','-134 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-079",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-67.35 days','-187 minutes'))",
+   "params": [
+    "perf-evt-task-completed-080",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-68.2 days','-240 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-081",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-69.05 days','-293 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-082",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-69.9 days','-346 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-083",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-70.75 days','-399 minutes'))",
+   "params": [
+    "perf-evt-task-completed-084",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-71.6 days','-52 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-085",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-72.45 days','-105 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-086",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-73.3 days','-158 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-087",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74.15 days','-211 minutes'))",
+   "params": [
+    "perf-evt-task-completed-088",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-75 days','-264 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-089",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-75.85 days','-317 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-090",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-76.7 days','-370 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-091",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-77.55 days','-23 minutes'))",
+   "params": [
+    "perf-evt-task-completed-092",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-78.4 days','-76 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-093",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-79.25 days','-129 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-094",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-80.1 days','-182 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-095",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-80.95 days','-235 minutes'))",
+   "params": [
+    "perf-evt-task-completed-096",
+    "{{child2}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-81.8 days','-288 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-097",
+    "{{me}}",
+    2
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-82.65 days','-341 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-098",
+    "{{child}}",
+    10
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-83.5 days','-394 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-099",
+    "{{child2}}",
+    8
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-84.35 days','-47 minutes'))",
+   "params": [
+    "perf-evt-task-completed-100",
+    "{{partner}}",
+    20
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-85.2 days','-100 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-101",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-86.05 days','-153 minutes'))",
+   "params": [
+    "perf-evt-streak-milestone-102",
+    "{{child2}}",
+    3
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-86.9 days','-206 minutes'))",
+   "params": [
+    "perf-evt-habit-milestone-103",
+    "{{child}}",
+    5
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-87.75 days','-259 minutes'))",
+   "params": [
+    "perf-evt-task-completed-104",
+    "{{child2}}",
+    12
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-88.6 days','-312 minutes'))",
+   "params": [
+    "perf-evt-chore-completed-105",
+    "{{child}}",
+    15
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-0.2 days','+0 minutes'))",
+   "params": [
+    "perf-req-01",
+    "perf-reward-movie",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-0.5 days','+0 minutes'))",
+   "params": [
+    "perf-req-02",
+    "perf-reward-game",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+0 minutes'))",
+   "params": [
+    "perf-req-03",
+    "perf-reward-dessert",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1.5 days','+0 minutes'))",
+   "params": [
+    "perf-req-04",
+    "perf-reward-playlist",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'))",
+   "params": [
+    "perf-req-05",
+    "perf-reward-latebed",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+0 minutes'))",
+   "params": [
+    "perf-req-06",
+    "perf-reward-game",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-06",
+    "perf-req-06",
+    "perf-reward-game",
+    "{{child}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+0 minutes'))",
+   "params": [
+    "perf-req-07",
+    "perf-reward-dessert",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-07",
+    "perf-req-07",
+    "perf-reward-dessert",
+    "{{child2}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7 days','+0 minutes'))",
+   "params": [
+    "perf-req-08",
+    "perf-reward-nochore",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-08",
+    "perf-req-08",
+    "perf-reward-nochore",
+    "{{child}}",
+    "rejected",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-8 days','+0 minutes'))",
+   "params": [
+    "perf-req-09",
+    "perf-reward-movie",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-8 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-09",
+    "perf-req-09",
+    "perf-reward-movie",
+    "{{child2}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+0 minutes'))",
+   "params": [
+    "perf-req-10",
+    "perf-reward-frontseat",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-10",
+    "perf-req-10",
+    "perf-reward-frontseat",
+    "{{child}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+0 minutes'))",
+   "params": [
+    "perf-req-11",
+    "perf-reward-dinner",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-11",
+    "perf-req-11",
+    "perf-reward-dinner",
+    "{{child2}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-14 days','+0 minutes'))",
+   "params": [
+    "perf-req-12",
+    "perf-reward-pocket",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-14 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-12",
+    "perf-req-12",
+    "perf-reward-pocket",
+    "{{child}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-16 days','+0 minutes'))",
+   "params": [
+    "perf-req-13",
+    "perf-reward-sleepover",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-16 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-13",
+    "perf-req-13",
+    "perf-reward-sleepover",
+    "{{child2}}",
+    "rejected",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+0 minutes'))",
+   "params": [
+    "perf-req-14",
+    "perf-reward-playlist",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-14",
+    "perf-req-14",
+    "perf-reward-playlist",
+    "{{child}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-21 days','+0 minutes'))",
+   "params": [
+    "perf-req-15",
+    "perf-reward-bake",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-21 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-15",
+    "perf-req-15",
+    "perf-reward-bake",
+    "{{child2}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-24 days','+0 minutes'))",
+   "params": [
+    "perf-req-16",
+    "perf-reward-game",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-24 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-16",
+    "perf-req-16",
+    "perf-reward-game",
+    "{{child}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-26 days','+0 minutes'))",
+   "params": [
+    "perf-req-17",
+    "perf-reward-dessert",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-26 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-17",
+    "perf-req-17",
+    "perf-reward-dessert",
+    "{{me}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 days','+0 minutes'))",
+   "params": [
+    "perf-req-18",
+    "perf-reward-latebed",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-18",
+    "perf-req-18",
+    "perf-reward-latebed",
+    "{{child}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days','+0 minutes'))",
+   "params": [
+    "perf-req-19",
+    "perf-reward-movie",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-19",
+    "perf-req-19",
+    "perf-reward-movie",
+    "{{child}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+0 minutes'))",
+   "params": [
+    "perf-req-20",
+    "perf-reward-cinema",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-20",
+    "perf-req-20",
+    "perf-reward-cinema",
+    "{{child2}}",
+    "rejected",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-37 days','+0 minutes'))",
+   "params": [
+    "perf-req-21",
+    "perf-reward-dessert",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-37 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-21",
+    "perf-req-21",
+    "perf-reward-dessert",
+    "{{child2}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40 days','+0 minutes'))",
+   "params": [
+    "perf-req-22",
+    "perf-reward-game",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-22",
+    "perf-req-22",
+    "perf-reward-game",
+    "{{child2}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-44 days','+0 minutes'))",
+   "params": [
+    "perf-req-23",
+    "perf-reward-nochore",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-44 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-23",
+    "perf-req-23",
+    "perf-reward-nochore",
+    "{{child}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+0 minutes'))",
+   "params": [
+    "perf-req-24",
+    "perf-reward-frontseat",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-24",
+    "perf-req-24",
+    "perf-reward-frontseat",
+    "{{child2}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-52 days','+0 minutes'))",
+   "params": [
+    "perf-req-25",
+    "perf-reward-pool",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-52 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-25",
+    "perf-req-25",
+    "perf-reward-pool",
+    "{{child}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 days','+0 minutes'))",
+   "params": [
+    "perf-req-26",
+    "perf-reward-dinner",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-26",
+    "perf-req-26",
+    "perf-reward-dinner",
+    "{{child}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-60 days','+0 minutes'))",
+   "params": [
+    "perf-req-27",
+    "perf-reward-toy",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-60 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-27",
+    "perf-req-27",
+    "perf-reward-toy",
+    "{{child2}}",
+    "rejected",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-64 days','+0 minutes'))",
+   "params": [
+    "perf-req-28",
+    "perf-reward-playlist",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-64 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-28",
+    "perf-req-28",
+    "perf-reward-playlist",
+    "{{child2}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-70 days','+0 minutes'))",
+   "params": [
+    "perf-req-29",
+    "perf-reward-sleepover",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-70 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-29",
+    "perf-req-29",
+    "perf-reward-sleepover",
+    "{{child}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-75 days','+0 minutes'))",
+   "params": [
+    "perf-req-30",
+    "perf-reward-movie",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-75 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-30",
+    "perf-req-30",
+    "perf-reward-movie",
+    "{{child2}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-80 days','+0 minutes'))",
+   "params": [
+    "perf-req-31",
+    "perf-reward-dessert",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-80 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-31",
+    "perf-req-31",
+    "perf-reward-dessert",
+    "{{child}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-86 days','+0 minutes'))",
+   "params": [
+    "perf-req-32",
+    "perf-reward-pocket",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-86 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-32",
+    "perf-req-32",
+    "perf-reward-pocket",
+    "{{child2}}",
+    "approved",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-92 days','+0 minutes'))",
+   "params": [
+    "perf-req-33",
+    "perf-reward-game",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-92 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-33",
+    "perf-req-33",
+    "perf-reward-game",
+    "{{child}}",
+    "approved",
+    "{{me}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-98 days','+0 minutes'))",
+   "params": [
+    "perf-req-34",
+    "perf-reward-bake",
+    "{{child}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-98 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-34",
+    "perf-req-34",
+    "perf-reward-bake",
+    "{{child}}",
+    "rejected",
+    "{{partner}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-104 days','+0 minutes'))",
+   "params": [
+    "perf-req-35",
+    "perf-reward-latebed",
+    "{{child2}}"
+   ]
+  },
+  {
+   "sql": "INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-104 days','+180 minutes'), ?)",
+   "params": [
+    "perf-dec-35",
+    "perf-req-35",
+    "perf-reward-latebed",
+    "{{child2}}",
+    "approved",
+    "{{me}}"
+   ]
+  }
+ ]
+}
