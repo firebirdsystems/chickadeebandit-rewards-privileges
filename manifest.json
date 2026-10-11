@@ -38,10 +38,6 @@
         "column": "created_by",
         "on_removed": "keep"
       },
-      "redemption_requests": {
-        "column": "member_id",
-        "on_removed": "delete"
-      },
       "redemption_decisions": [
         {
           "column": "member_id",
@@ -52,6 +48,13 @@
           "on_removed": "keep"
         }
       ],
+      "redemption_requests": {
+        "column": "member_id",
+        "on_removed": "delete",
+        "dependent_tables": [
+          { "table": "redemption_decisions", "foreign_key": "request_id" }
+        ]
+      },
       "points_ledger": {
         "column": "member_id",
         "on_removed": "delete",

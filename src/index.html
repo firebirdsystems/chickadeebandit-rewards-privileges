@@ -60,6 +60,7 @@
     .selector-btn { justify-content:space-between; background:var(--card); color:var(--text); border:1.5px solid var(--border); }
     .selector-btn.active { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-light); }
     .notice { border-left:4px solid var(--amber); }
+    .app-error { border-left:4px solid var(--red); color:var(--red); }
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
     @media (min-width:480px) { .modal-backdrop { align-items:center; padding:20px; } }
     .modal { background:var(--card); width:100%; max-width:480px; padding:22px; border-radius:var(--radius) var(--radius) 0 0; }
@@ -85,21 +86,24 @@
 
 <script type="module">
 import { esc, isAdult, searchMatch, automationStatus, glyph } from "/hub-sdk.js";
-import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward, searchableFields } from "./logic.js";
+import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward, searchableFields, reviewsRedemptions, hasNoChildren, canAffordApproval, decisionChoices, normalizeReward, stalledPointsSource } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB = window.__DB_URL ?? "";
 const EVENTS = window.__EVENTS_URL ?? "/api/events";
 const ACTIVITY = window.__ACTIVITY_URL ?? "";
-const LOCAL_DEMO = !window.__CURRENT_MEMBER;
+// Demo mode is the page opened with no hub behind it. A viewer the hub knows
+// but who is not a member here (VIEW_ONLY) still reads real data: they get the
+// reward list and nothing to press, not a made-up adult over real members.
+const LOCAL_DEMO = !DB && !window.__CURRENT_MEMBER;
+const VIEW_ONLY = !!DB && !window.__CURRENT_MEMBER;
 const HUB_ORIGIN = window.__HUB_ORIGIN ?? "";
-// Points arrive only through the "Award points when a chore is completed"
-// automation, which the hub runs by itself (manifest `enable: "automatically"`).
-// When it cannot run — Chores is not installed, or an admin switched it off —
-// every balance reads 0, so admins (the people who can fix it, and the only
-// ones the hub answers) are told why instead of guessing.
+// Points arrive through automations the hub runs (completed chores, a week of
+// practice). When none of them can run — the source app is not installed, or
+// the automation is off — every balance reads 0, so admins (the people who can
+// fix it, and the only ones the hub answers) are told why instead of guessing.
 let pointsSource = null;   // { state: "off" | "unavailable", title, publishers } or null
-let ME = window.__CURRENT_MEMBER ?? { id:"adult-1", name:"Alex", role:"adult" };
+let ME = window.__CURRENT_MEMBER ?? (LOCAL_DEMO ? { id:"adult-1", name:"Alex", role:"adult" } : null);
 
 let members = [];
 let rewards = [];
@@ -112,11 +116,74 @@ let earnedByMember = new Map();  // member_id -> rollup opening + SUM(live ledge
 let selectedKidId = null;
 let tab = "rewards";
 let modalEl = null;
+let errorMsg = "";      // the last refusal or failure, shown under the header
 
-async function db(sql, params = []) {
+// Answering requests and seeing other members' points: any adult in a
+// household, and only the steward in a shared space. The hub decides; this
+// only keeps the page from showing balances it cannot read and buttons that
+// would be refused. A function, because demo mode swaps ME.
+const TENANT = { tenantKind: window.__TENANT_KIND ?? "household", isAdmin: window.__IS_ADMIN === true };
+// Nobody reviews without being a member here: a session the hub knows only as
+// an admin has no row of its own to answer with.
+function reviews() { return !!ME && reviewsRedemptions(ME, TENANT); }
+
+// `timeoutMs` is for reads: loads run one after another, so one that never
+// answered held up every load behind it and, with them, the buttons waiting on
+// those loads. A write is never cut short, since nothing would then be known
+// about whether it landed.
+async function db(sql, params = [], { timeoutMs = 0 } = {}) {
   if (!DB) return { rows: [] };
-  const res = await fetch(DB, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ sql, params }) });
-  return res.json();
+  const limit = timeoutMs ? new AbortController() : null;
+  const timer = limit ? setTimeout(() => limit.abort(), timeoutMs) : null;
+  let res;
+  let json;
+  try {
+    res = await fetch(DB, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ sql, params }), signal: limit?.signal });
+    // The limit covers the body too. Headers can arrive and the body stall,
+    // and a timer cleared at the headers left this waiting for good.
+    //
+    // A body that cannot be read is a failure, never an empty answer. Read as
+    // `{}`, a cut-off reply to the decisions read became "no decisions": every
+    // approved redemption went back to pending, the points it had spent came
+    // back, and approvals were judged against a balance that was not there.
+    // Only a refusal (not ok) may arrive without JSON, and it is reported as
+    // the refusal it is, below.
+    json = await res.json().catch((e) => {
+      if (res.ok) throw new Error("The hub's answer could not be read. Reload to try again.", { cause: e });
+      return {};
+    });
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+  // A refusal is an answer too: without this a write the hub turned down read
+  // as a success, and the click that asked for it appeared to do nothing.
+  if (!res.ok || json.error) throw new Error(json.error || "That could not be saved");
+  return json;
+}
+
+// A failure closes whatever dialog raised it and is shown under the header,
+// so it is still on screen once the dialog is gone.
+function showError(e, dialog = modalEl) {
+  errorMsg = e?.message || "Something went wrong. Please try again.";
+  if (modalEl === dialog) closeModal();
+  render();
+}
+// Runs one action, clearing the last failure first and reporting a new one.
+// A second tap on the same thing while the first is still in flight is
+// dropped: the page only learns of the first once it has reloaded, so a
+// double tap on Redeem filed two requests, each holding points.
+const inFlight = new Set();
+function attempt(key, action) {
+  if (inFlight.has(key)) return Promise.resolve();
+  inFlight.add(key);
+  errorMsg = "";
+  // The dialog on screen when this started. A failure closes that one only:
+  // closing whatever is open took a form the adult had since begun typing in.
+  const dialog = modalEl;
+  const refreshed = outOfDate
+    ? loadData().then(() => { outOfDate = false; render(); }, () => { throw new Error("This page is out of date and could not refresh. Reload before trying again."); })
+    : Promise.resolve();
+  return refreshed.then(action).catch((e) => showError(e, dialog)).finally(() => inFlight.delete(key));
 }
 
 async function publishEvent(type, subjectId, payload = {}) {
@@ -143,7 +210,26 @@ async function loadMembers() {
   } catch { members = []; }
 }
 
-async function loadData() {
+const READ_LIMIT_MS = 20000;
+// A read is an answer with rows in it; anything else is not taken for "none".
+async function read(sql) {
+  const json = await db(sql, [], { timeoutMs: READ_LIMIT_MS });
+  if (!Array.isArray(json.rows)) throw new Error("The hub's answer could not be read. Reload to try again.");
+  return json;
+}
+
+// One load at a time, in the order asked for. Each caller waits for a read
+// that started after its own write, which is what lets `attempt` hold a
+// member's key until the page really shows that write. Letting a newer load
+// cut an older one short released the key over stale balances.
+let loadQueue = Promise.resolve();
+function loadData() {
+  const run = loadQueue.then(readData);
+  loadQueue = run.catch(() => {});
+  return run;
+}
+
+async function readData() {
   if (!DB) {
     if (rewards.length === 0) {
       rewards = [
@@ -163,22 +249,55 @@ async function loadData() {
     hydrateRedemptions();
     return;
   }
-  rewards = (await db(`SELECT * FROM app_rewards_privileges__rewards ORDER BY created_at`)).rows ?? [];
-  redemptionRequests = (await db(`SELECT * FROM app_rewards_privileges__redemption_requests ORDER BY requested_at DESC`)).rows ?? [];
-  redemptionDecisions = (await db(`SELECT * FROM app_rewards_privileges__redemption_decisions ORDER BY decided_at DESC`)).rows ?? [];
-  hydrateRedemptions();
+  // Read into locals and put on the page in one step. Filled in place across
+  // these awaits, a tap or a render in between saw every balance as 0, and two
+  // loads running together added the rollup twice.
+  const nextRewards = ((await read(`SELECT * FROM app_rewards_privileges__rewards ORDER BY created_at`)).rows ?? []).map(normalizeReward);
+  if (VIEW_ONLY) {
+    // The reward list is the one read the hub answers without a member; the
+    // rest are refused, and waiting on them lost the list as well.
+    rewards = nextRewards;
+    hydrateRedemptions();
+    return;
+  }
+  const nextRequests = (await read(`SELECT * FROM app_rewards_privileges__redemption_requests ORDER BY requested_at DESC`)).rows ?? [];
+  const nextDecisions = (await read(`SELECT * FROM app_rewards_privileges__redemption_decisions ORDER BY decided_at DESC`)).rows ?? [];
   // Earned points, aggregated in SQL: the retention rollup's opening balance
   // plus the live ledger tail. The client used to fetch EVERY ledger row and
   // sum in JS — unbounded over years, and it blocked retention outright
   // (expiring rows silently shrank balances). The runner now folds expiring
   // rows into points_rollup transactionally, so this total is stable across
   // expiry, and the wire cost is one row per member forever.
-  earnedByMember = new Map();
-  const tail = (await db(`SELECT member_id, COALESCE(SUM(points), 0) AS earned FROM app_rewards_privileges__points_ledger GROUP BY member_id`)).rows ?? [];
-  for (const row of tail) earnedByMember.set(row.member_id, Math.max(0, Number(row.earned ?? 0)));
-  const rollup = (await db(`SELECT member_id, points FROM app_rewards_privileges__points_rollup`)).rows ?? [];
-  for (const row of rollup) earnedByMember.set(row.member_id, (earnedByMember.get(row.member_id) ?? 0) + Math.max(0, Number(row.points ?? 0)));
+  const nextEarned = new Map();
+  const points = (value) => { const n = Number(value ?? 0); return Number.isFinite(n) ? Math.max(0, n) : 0; };
+  const tail = (await read(`SELECT member_id, COALESCE(SUM(points), 0) AS earned FROM app_rewards_privileges__points_ledger GROUP BY member_id`)).rows ?? [];
+  for (const row of tail) nextEarned.set(row.member_id, points(row.earned));
+  const rollup = (await read(`SELECT member_id, points FROM app_rewards_privileges__points_rollup`)).rows ?? [];
+  for (const row of rollup) nextEarned.set(row.member_id, (nextEarned.get(row.member_id) ?? 0) + points(row.points));
+  rewards = nextRewards;
+  redemptionRequests = nextRequests;
+  redemptionDecisions = nextDecisions;
+  earnedByMember = nextEarned;
+  hydrateRedemptions();
 }
+
+// The re-read after a write that already landed. Its failure is said as what
+// it is: "could not be saved" there sent people to repeat a write that had
+// worked.
+async function reload() {
+  try {
+    await loadData();
+    outOfDate = false;
+  } catch {
+    // The write landed and the page does not show it. Every check the next
+    // action makes would be against the old balances, so it refreshes first
+    // (see attempt).
+    outOfDate = true;
+    errorMsg = "Saved, but this page could not refresh. Reload to see the latest.";
+  }
+  render();
+}
+let outOfDate = false;
 
 function hydrateRedemptions() {
   redemptions = combineRedemptions(rewards, redemptionRequests, redemptionDecisions);
@@ -187,23 +306,35 @@ function hydrateRedemptions() {
 function kidList() { return members.filter(m => !isAdult(m)); }
 function memberName(id) { return members.find(m => m.id === id)?.name ?? "Someone"; }
 function pointsFor(memberId) { return availablePointsFromEarned(earnedByMember, redemptions, memberId); }
+// Whose points the page is showing: a child's own, or the child a reviewer
+// picked. Nobody, for an adult with no child to look at or no way to read one.
 function currentKidId() {
   if (!isAdult(ME)) return ME?.id;
+  if (!reviews()) return null;
   const kids = kidList();
-  if (!selectedKidId || !kids.some(kid => kid.id === selectedKidId)) selectedKidId = kids[0]?.id ?? ME?.id;
+  if (!selectedKidId || !kids.some(kid => kid.id === selectedKidId)) selectedKidId = kids[0]?.id ?? null;
   return selectedKidId;
 }
 
 async function addReward() {
   if (!isAdult(ME)) return;
+  const dialog = modalEl;
   const title = document.getElementById("reward-title").value.trim();
   const description = document.getElementById("reward-description").value.trim();
   const cost = parseInt(document.getElementById("reward-cost").value, 10);
-  if (!title || !cost || cost <= 0) return;
+  if (!title || !cost || cost <= 0) {
+    // Said in the dialog, which stays open with what was typed.
+    const note = document.getElementById("reward-error");
+    if (note) {
+      note.textContent = !title ? "Give the reward a title." : "Set a cost of at least 1 point.";
+      note.hidden = false;
+    }
+    return;
+  }
   const id = crypto.randomUUID();
   if (!DB) {
     rewards = [...rewards, { id, title, description, cost_points:cost, status:"active", created_by:ME.id, created_at:new Date().toISOString() }];
-    closeModal();
+    if (modalEl === dialog) closeModal();
     render();
     return;
   }
@@ -214,9 +345,8 @@ async function addReward() {
   );
   await publishEvent("reward.available", id, { reward_id:id, title, cost_points:cost });
   await logActivity("reward_available", `New reward available: ${title}`, { rewardId:id });
-  closeModal();
-  await loadData();
-  render();
+  if (modalEl === dialog) closeModal();
+  await reload();
 }
 
 async function requestReward(rewardId) {
@@ -239,15 +369,15 @@ async function requestReward(rewardId) {
      VALUES (?, ?, ?, ?)`,
     [crypto.randomUUID(), rewardId, ME.id, new Date().toISOString()]
   );
-  await loadData();
-  render();
+  await reload();
 }
 
 async function decideRedemption(id, status) {
-  if (!isAdult(ME)) return;
+  if (!reviews()) return;
   const redemption = redemptions.find(r => r.id === id);
   const reward = rewards.find(r => r.id === redemption?.reward_id);
-  if (!redemption || !reward || redemption.status !== "pending" || reward.status !== "active") return;
+  if (!redemption || !reward) return;
+  if (!decisionChoices(redemption, canAffordApproval(earnedByMember, redemptions, redemption)).includes(status)) return;
   if (!DB) {
     redemptionDecisions = [
       ...redemptionDecisions.filter(d => d.request_id !== id),
@@ -265,11 +395,19 @@ async function decideRedemption(id, status) {
     render();
     return;
   }
-  await db(
-    `INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [crypto.randomUUID(), id, reward.id, redemption.member_id, status, new Date().toISOString(), ME.id ?? "adult"]
-  );
+  try {
+    await db(
+      `INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [crypto.randomUUID(), id, reward.id, redemption.member_id, status, new Date().toISOString(), ME.id ?? "adult"]
+    );
+  } catch (e) {
+    // A request is answered once. When another reviewer got there first, show
+    // their answer instead of a database message over a row that still looks
+    // pending and refuses every further tap.
+    await loadData().catch(() => {});
+    throw /unique/i.test(e?.message ?? "") ? new Error("Someone else already answered this request.") : e;
+  }
   if (status === "approved") {
     await publishEvent("reward.redeemed", redemption.member_id, {
       reward_id: reward.id,
@@ -283,8 +421,7 @@ async function decideRedemption(id, status) {
       rewardId: reward.id,
     });
   }
-  await loadData();
-  render();
+  await reload();
 }
 
 async function archiveReward(id) {
@@ -296,8 +433,7 @@ async function archiveReward(id) {
     return;
   }
   await db(`UPDATE app_rewards_privileges__rewards SET status = 'archived' WHERE id = ?`, [id]);
-  await loadData();
-  render();
+  await reload();
 }
 
 function openRewardModal() {
@@ -306,6 +442,7 @@ function openRewardModal() {
     <div class="form-group"><label>Title</label><input id="reward-title" type="text" placeholder="Friday movie choice" data-autofocus /></div>
     <div class="form-group"><label>Description</label><textarea id="reward-description" rows="3" placeholder="What does the child get?"></textarea></div>
     <div class="form-group"><label>Cost in chore points</label><input id="reward-cost" type="number" min="1" value="25" /></div>
+    <p id="reward-error" role="alert" style="color:var(--red);font-size:.84rem" hidden></p>
     <div class="modal-actions"><button class="btn btn-ghost" data-action="close-modal">Cancel</button><button class="btn btn-primary" data-action="add-reward">Save</button></div>
   `);
 }
@@ -322,7 +459,7 @@ function openModal(html) {
 function closeModal() { modalEl?.remove(); modalEl = null; }
 
 function renderRewardsFor(memberId) {
-  const points = pointsFor(memberId);
+  const points = memberId ? pointsFor(memberId) : 0;
   const allActive = rewards.filter(reward => reward.status === "active");
   if (allActive.length === 0) return `<div class="empty">No rewards yet. An adult can add the first one.</div>`;
   const activeRewards = searchQ
@@ -338,39 +475,47 @@ function renderRewardsFor(memberId) {
       <div class="card reward">
         <div class="reward-top"><h3>${esc(reward.title)}</h3></div>
         <div class="desc">${reward.description ? esc(reward.description) : "No description."}</div>
-        <div class="bar"><div class="fill" style="width:${progress}%"></div></div>
-        <div class="meta"><span>${points}/${reward.cost_points} points</span><span>${progress}%</span></div>
+        ${memberId
+          ? `<div class="bar"><div class="fill" style="width:${progress}%"></div></div>
+        <div class="meta"><span>${points}/${reward.cost_points} points</span><span>${progress}%</span></div>`
+          : `<div class="meta"><span>${reward.cost_points} points</span></div>`}
         ${isAdult(ME)
           ? `<button class="btn btn-ghost btn-sm" data-action="archive-reward" data-reward-id="${esc(reward.id)}">Hide reward</button>`
+          : !ME ? ""
           : `<button class="btn btn-primary btn-sm" ${!enough || pending ? "disabled" : ""} data-action="request-reward" data-reward-id="${esc(reward.id)}">${pending ? "Requested" : enough ? "Redeem" : "Keep going"}</button>`}
       </div>`;
   }).join("")}</div>`;
 }
 
 function renderRequests() {
-  const rows = redemptions.filter(r => isAdult(ME) || r.member_id === ME?.id);
+  const rows = redemptions.filter(r => reviews() || r.member_id === ME?.id);
   if (rows.length === 0) return `<div class="empty">No redemption requests yet.</div>`;
   return rows.map(r => {
     const reward = rewards.find(x => x.id === r.reward_id) ?? { title:"Hidden reward" };
-    const canDecide = isAdult(ME) && r.status === "pending" && r.reward_available;
+    const affordable = canAffordApproval(earnedByMember, redemptions, r);
+    const choices = reviews() ? decisionChoices(r, affordable) : [];
+    // Why Approve is missing, for a reviewer who can still reject.
+    const blocked = !choices.length || choices.includes("approved") ? ""
+      : !r.reward_available ? "This reward was hidden. Reject to return the points."
+      : `${esc(memberName(r.member_id))} does not have enough points for this.`;
     return `
       <div class="card request">
         <div>
           <div style="font-weight:800">${esc(memberName(r.member_id))} · ${esc(reward.title)}</div>
           <div style="font-size:.8rem;color:var(--muted)">${r.cost_points} points · ${new Date(r.requested_at).toLocaleDateString()}</div>
+          ${blocked ? `<div style="font-size:.8rem;color:var(--amber)" data-testid="decision-blocked">${blocked}</div>` : ""}
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="status ${esc(r.status)}">${esc(r.status)}</span>
-          ${canDecide ? `
-            <button class="btn btn-good btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="approved">Approve</button>
-            <button class="btn btn-danger btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="rejected">Reject</button>` : ""}
+          ${choices.includes("approved") ? `<button class="btn btn-good btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="approved">Approve</button>` : ""}
+          ${choices.includes("rejected") ? `<button class="btn btn-danger btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="rejected">Reject</button>` : ""}
         </div>
       </div>`;
   }).join("");
 }
 
 function renderKidSelector(activeId) {
-  if (!isAdult(ME)) return "";
+  if (!reviews()) return "";
   const kids = kidList();
   if (kids.length <= 1) return "";
   return `<div class="selector">${kids.map(kid => `
@@ -403,22 +548,33 @@ function render() {
   const memberId = currentKidId();
   const kid = members.find(m => m.id === memberId);
   const points = memberId ? pointsFor(memberId) : 0;
-  const pendingCount = redemptions.filter(r => r.status === "pending" && (isAdult(ME) || r.member_id === ME?.id)).length;
+  const pendingCount = redemptions.filter(r => r.status === "pending" && (reviews() || r.member_id === ME?.id)).length;
+  // An adult who cannot review has no requests to look at: theirs is the
+  // reward list alone.
+  const hasRequests = !!ME && (!isAdult(ME) || reviews());
+  if (!hasRequests) tab = "rewards";
+  const adultNote = VIEW_ONLY ? "You are not a member here, so this is the reward list to look at only."
+    : !isAdult(ME) || memberId ? ""
+    : hasNoChildren(members) ? "Rewards are earned and redeemed by child members, and there are none here yet. You can set up rewards now; add a child member so someone can earn them."
+    : !reviews() ? "In a shared space, the steward sees points and approves requests. Any adult can add rewards."
+    : "";
   document.getElementById("root").innerHTML = `
     <header>
       <div><h1>${glyph("gift", { accent: "currentColor" })} Rewards</h1><div class="sub">Visible progress toward things kids care about${LOCAL_DEMO ? " · Demo mode" : ""}</div></div>
       ${isAdult(ME) ? `<button class="btn btn-primary" style="background:#fff;color:var(--accent)" data-action="open-reward-modal">+ Reward</button>` : ""}
     </header>
+    ${errorMsg ? `<div class="card app-error" role="alert"><div class="card-body">${esc(errorMsg)}</div></div>` : ""}
     ${renderDemoSwitcher()}
     ${renderKidSelector(memberId)}
+    ${adultNote ? `<div class="card notice" role="status" data-testid="adult-note"><div class="card-body">${adultNote}</div></div>` : ""}
     ${memberId ? `<div class="points"><div><div class="section-title">${isAdult(ME) ? "Viewing rewards for" : "Working toward"}</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div><div style="font-size:.8rem;color:var(--muted)">${isAdult(ME) ? "Kids redeem points; adults approve requests." : "Redeem when you have enough points. Adults approve requests."}</div></div><strong data-testid="points-balance" data-member-id="${esc(memberId)}">${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
     ${renderPointsSourceNotice()}
-    ${isAdult(ME) && pendingCount > 0 && tab !== "requests" ? `<div class="card notice"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>${pendingCount} pending request${pendingCount === 1 ? "" : "s"}</strong><button class="btn btn-primary btn-sm" data-action="set-tab" data-tab="requests">Review</button></div></div>` : ""}
-    <div class="tabs">
+    ${reviews() && pendingCount > 0 && tab !== "requests" ? `<div class="card notice"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>${pendingCount} pending request${pendingCount === 1 ? "" : "s"}</strong><button class="btn btn-primary btn-sm" data-action="set-tab" data-tab="requests">Review</button></div></div>` : ""}
+    ${hasRequests ? `<div class="tabs">
       <button class="tab ${tab === "rewards" ? "active" : ""}" data-action="set-tab" data-tab="rewards">Rewards</button>
       <button class="tab ${tab === "requests" ? "active" : ""}" data-action="set-tab" data-tab="requests">Requests${pendingCount ? ` (${pendingCount})` : ""}</button>
-    </div>
-    ${tab === "rewards" && memberId ? renderRewardsFor(memberId) : renderRequests()}
+    </div>` : ""}
+    ${tab === "rewards" ? renderRewardsFor(memberId) : renderRequests()}
   `;
 }
 
@@ -428,8 +584,8 @@ function renderPointsSourceNotice() {
     ? ` <a href="${esc(HUB_ORIGIN)}/settings/automations" target="_top">Settings → Automations</a>`
     : " Settings → Automations";
   const text = pointsSource.state === "unavailable"
-    ? `Points come from completed chores. Install ${esc(pointsSource.publishers.join(" or ") || "a chores app")} to start earning.`
-    : `Chore points are not being counted: "${esc(pointsSource.title)}" is switched off. Turn it back on in${settings}.`;
+    ? `Points come from other apps, such as completed chores. Install ${esc(pointsSource.publishers.join(" or ") || "a chores app")} to start earning.`
+    : `Points are not being counted: "${esc(pointsSource.title)}" is off. Turn it on in${settings}.${pointsSource.publishers.length ? ` Points can also come from ${esc(pointsSource.publishers.join(" or "))}, once installed.` : ""}`;
   return `<div class="card notice" role="status"><div class="card-body">${text}</div></div>`;
 }
 
@@ -455,11 +611,17 @@ document.addEventListener("click", event => {
   if (!button) return;
   const { action, rewardId, redemptionId, status, memberId, tab: nextTab } = button.dataset;
   if (action === "open-reward-modal") openRewardModal();
-  if (action === "add-reward") addReward();
+  if (action === "add-reward") attempt("add-reward", () => addReward());
   if (action === "close-modal") closeModal();
-  if (action === "archive-reward" && rewardId) archiveReward(rewardId);
-  if (action === "request-reward" && rewardId) requestReward(rewardId);
-  if (action === "decide-redemption" && redemptionId && status) decideRedemption(redemptionId, status);
+  if (action === "archive-reward" && rewardId) attempt(`archive:${rewardId}`, () => archiveReward(rewardId));
+  // Keyed by the MEMBER whose points are in play, not by the reward or the
+  // request: every check is against that member's balance as last loaded, and
+  // the key is held until the reload, so the next answer sees this one.
+  if (action === "request-reward" && rewardId) attempt(`points:${ME?.id}`, () => requestReward(rewardId));
+  if (action === "decide-redemption" && redemptionId && status) {
+    const owner = redemptions.find(r => r.id === redemptionId)?.member_id ?? redemptionId;
+    attempt(`points:${owner}`, () => decideRedemption(redemptionId, status));
+  }
   if (action === "select-kid" && memberId) window.selectKid(memberId);
   if (action === "set-demo-member" && memberId) window.setDemoMember(memberId);
   if (action === "set-tab" && nextTab) window.setTab(nextTab);
@@ -467,15 +629,11 @@ document.addEventListener("click", event => {
 
 (async () => {
   await loadMembers();
-  await loadData();
+  await loadData().catch(() => { errorMsg = "Rewards could not be loaded. Reload to try again."; });
   render();
   if (!LOCAL_DEMO && window.__IS_ADMIN) {
-    const list = await automationStatus().catch(() => null);
-    const credit = (list ?? []).find((a) => a.action_id === "credit_points");
-    if (credit && credit.state !== "on") {
-      pointsSource = { state: credit.state, title: credit.title, publishers: credit.publishers ?? [] };
-      render();
-    }
+    pointsSource = stalledPointsSource(await automationStatus().catch(() => null));
+    if (pointsSource) render();
   }
 })();
 </script>

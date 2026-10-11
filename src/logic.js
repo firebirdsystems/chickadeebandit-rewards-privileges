@@ -1,3 +1,35 @@
+/**
+ * A reward as the page may use it. `cost_points` is declared INTEGER, but
+ * SQLite stores whatever text it is handed and the column's CHECK passes it
+ * (text compares greater than a number), so a row written straight through the
+ * database can carry markup or a non-number there. The cost becomes a whole
+ * number here, once, and a reward without a usable one is treated as hidden:
+ * it cannot be requested, and a request already made for it can be rejected.
+ */
+export function normalizeReward(reward) {
+  const cost = Number(reward?.cost_points);
+  const usable = Number.isFinite(cost) && cost >= 1;
+  return { ...reward, cost_points: usable ? Math.floor(cost) : 0, status: usable ? reward.status : "archived" };
+}
+
+/**
+ * The automation that feeds points, when none is running: the one to name in
+ * the notice. Several automations can credit points (chores, practice), and
+ * points are arriving as long as any one of them is on, so the notice is for
+ * the case where none is. One that is off is named ahead of one whose source
+ * app is missing, since turning it on is the nearer fix. "Off" covers both a
+ * switched-off automation and an optional one never turned on, so the notice
+ * says "is off", not "was switched off". `publishers` are the apps whose
+ * automation cannot run until they are installed.
+ */
+export function stalledPointsSource(automations) {
+  const credits = (automations ?? []).filter(a => a?.action_id === "credit_points");
+  if (credits.length === 0 || credits.some(a => a.state === "on")) return null;
+  const named = credits.find(a => a.state === "off") ?? credits[0];
+  const publishers = [...new Set(credits.filter(a => a.state !== "off").flatMap(a => a.publishers ?? []))];
+  return { state: named.state, title: named.title, publishers };
+}
+
 export function pointsFromLedger(ledger, memberId) {
   return ledger
     .filter(row => row.member_id === memberId)
@@ -24,6 +56,36 @@ export function availablePoints(ledger, redemptions, memberId) {
 export function availablePointsFromEarned(earnedByMember, redemptions, memberId) {
   const earned = Math.max(0, Number(earnedByMember.get(memberId) ?? 0));
   return Math.max(0, earned - spentPoints(redemptions, memberId));
+}
+
+/** Points already paid out: the member's approved redemptions. */
+export function approvedPoints(redemptions, memberId) {
+  return redemptions
+    .filter(r => r.member_id === memberId && r.status === "approved")
+    .reduce((sum, r) => sum + Math.max(0, Number(r.cost_points ?? 0)), 0);
+}
+
+/**
+ * Whether approving a request stays within what its member has earned. Only
+ * approved redemptions count against it: a pending request is a hold, and each
+ * hold is weighed when it is answered. The child's page checks the balance
+ * before asking, but a request can arrive from a stale page or straight
+ * through the database, so the reviewer's page checks again.
+ */
+export function canAffordApproval(earnedByMember, redemptions, redemption) {
+  const earned = Math.max(0, Number(earnedByMember.get(redemption.member_id) ?? 0));
+  return earned - approvedPoints(redemptions, redemption.member_id) >= Math.max(0, Number(redemption.cost_points ?? 0));
+}
+
+/**
+ * The answers a reviewer may give a request. A pending request can always be
+ * rejected, which is what returns its held points: a request for a reward that
+ * was hidden afterwards would otherwise hold them for good. Approving needs the
+ * reward still on offer and the points to pay for it.
+ */
+export function decisionChoices(redemption, affordable = true) {
+  if (!redemption || redemption.status !== "pending") return [];
+  return redemption.reward_available && affordable ? ["approved", "rejected"] : ["rejected"];
 }
 
 export function combineRedemptions(rewards, requests, decisions) {
@@ -74,4 +136,30 @@ export function pendingForReward(redemptions, memberId, rewardId) {
  */
 export function searchableFields(item) {
   return [item.title, item.description];
+}
+
+// The hub's own test for an adult member (hub-sdk `isAdult`), repeated here so
+// the role rules below can be unit-tested without the browser-only SDK.
+function isAdultMember(member) {
+  return !!member && (member.role === "adult" || member.role === "admin");
+}
+
+/**
+ * Whether a member answers redemption requests and sees other members' points.
+ * Mirrors the hub's rule for the request, decision and points tables: any
+ * adult in a household, and only the steward in a shared space. An adult who
+ * merely takes part in a space reads nobody else's requests or points, so a
+ * balance shown to them would read 0 and a decision would be refused.
+ */
+export function reviewsRedemptions(member, { tenantKind = "household", isAdmin = false } = {}) {
+  return tenantKind === "household" ? isAdultMember(member) : isAdmin === true;
+}
+
+/**
+ * True when the member list loaded and holds no child. Children earn and
+ * redeem the points, so without one nobody can. An empty list means the
+ * members could not be read, which says nothing either way.
+ */
+export function hasNoChildren(members) {
+  return members.length > 0 && !members.some(m => !isAdultMember(m));
 }
