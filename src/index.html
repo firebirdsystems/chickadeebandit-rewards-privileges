@@ -160,15 +160,29 @@ async function db(sql, params = [], { timeoutMs = 0 } = {}) {
   }
   // A refusal is an answer too: without this a write the hub turned down read
   // as a success, and the click that asked for it appeared to do nothing.
-  if (!res.ok || json.error) throw new Error(json.error || "That could not be saved");
+  if (!res.ok || json.error) throw Object.assign(new Error(json.error || "That could not be saved"), { refused: true });
   return json;
 }
 
-// A failure closes whatever dialog raised it and is shown under the header,
-// so it is still on screen once the dialog is gone.
+// A save the hub turned down is said in this page's words; the hub's own go to
+// the console. Anything else `db` raises already says what to do and is kept.
+async function write(sql, params, failure = "Couldn’t save — try again.") {
+  try {
+    return await db(sql, params);
+  } catch (e) {
+    if (!e?.refused) throw e;
+    console.error(e);
+    throw new Error(failure, { cause: e });
+  }
+}
+
+// A failure raised from a form is said in that form, which stays open as
+// typed to send again. Anything else is shown under the header.
 function showError(e, dialog = modalEl) {
-  errorMsg = e?.message || "Something went wrong. Please try again.";
-  if (modalEl === dialog) closeModal();
+  const message = e?.message || "Something went wrong. Please try again.";
+  const note = dialog && modalEl === dialog ? dialog.querySelector("#reward-error") : null;
+  if (note) { note.textContent = message; note.hidden = false; return; }
+  errorMsg = message;
   render();
 }
 // Runs one action, clearing the last failure first and reporting a new one.
@@ -180,8 +194,8 @@ function attempt(key, action) {
   if (inFlight.has(key)) return Promise.resolve();
   inFlight.add(key);
   errorMsg = "";
-  // The dialog on screen when this started. A failure closes that one only:
-  // closing whatever is open took a form the adult had since begun typing in.
+  // The dialog on screen when this started. A failure is said in that one
+  // only, not in a form the adult has since opened and begun typing in.
   const dialog = modalEl;
   const refreshed = outOfDate
     ? loadData().then(() => { outOfDate = false; render(); }, () => { throw new Error("This page is out of date and could not refresh. Reload before trying again."); })
@@ -326,9 +340,10 @@ async function addReward() {
   const title = document.getElementById("reward-title").value.trim();
   const description = document.getElementById("reward-description").value.trim();
   const cost = parseInt(document.getElementById("reward-cost").value, 10);
+  const note = document.getElementById("reward-error");
+  if (note) note.hidden = true;
   if (!title || !cost || cost <= 0) {
     // Said in the dialog, which stays open with what was typed.
-    const note = document.getElementById("reward-error");
     if (note) {
       note.textContent = !title ? "Give the reward a title." : "Set a cost of at least 1 point.";
       note.hidden = false;
@@ -342,10 +357,11 @@ async function addReward() {
     render();
     return;
   }
-  await db(
+  await write(
     `INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at)
      VALUES (?, ?, ?, ?, 'active', ?, ?)`,
-    [id, title, description, cost, ME.id ?? "adult", new Date().toISOString()]
+    [id, title, description, cost, ME.id ?? "adult", new Date().toISOString()],
+    "Couldn’t save the reward — try again."
   );
   await publishEvent("reward.available", id, { reward_id:id, title, cost_points:cost });
   await logActivity("reward_available", `New reward available: ${title}`, { rewardId:id });
@@ -368,10 +384,11 @@ async function requestReward(rewardId) {
     render();
     return;
   }
-  await db(
+  await write(
     `INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at)
      VALUES (?, ?, ?, ?)`,
-    [crypto.randomUUID(), rewardId, ME.id, new Date().toISOString()]
+    [crypto.randomUUID(), rewardId, ME.id, new Date().toISOString()],
+    "Couldn’t send your request — try again."
   );
   await reload();
 }
@@ -410,7 +427,10 @@ async function decideRedemption(id, status) {
     // their answer instead of a database message over a row that still looks
     // pending and refuses every further tap.
     await loadData().catch(() => {});
-    throw /unique/i.test(e?.message ?? "") ? new Error("Someone else already answered this request.") : e;
+    if (/unique/i.test(e?.message ?? "")) throw new Error("Someone else already answered this request.");
+    if (!e?.refused) throw e;
+    console.error(e);
+    throw new Error("Couldn’t save your answer — try again.", { cause: e });
   }
   if (status === "approved") {
     await publishEvent("reward.redeemed", redemption.member_id, {
@@ -436,7 +456,7 @@ async function archiveReward(id) {
     render();
     return;
   }
-  await db(`UPDATE app_rewards_privileges__rewards SET status = 'archived' WHERE id = ?`, [id]);
+  await write(`UPDATE app_rewards_privileges__rewards SET status = 'archived' WHERE id = ?`, [id], "Couldn’t archive the reward — try again.");
   await reload();
 }
 
