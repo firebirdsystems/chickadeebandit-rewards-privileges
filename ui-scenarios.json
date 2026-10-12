@@ -54,6 +54,176 @@
           "text": "25"
         }
       ]
+    },
+    {
+      "name": "in a shared space with no children both adults are told so; only the steward gets the Requests tab and the approve and reject buttons",
+      "context": "shared_space",
+      "members": {
+        "steward": "admin",
+        "pat": "adult",
+        "sam": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at) VALUES ('sp-reward', ?, ?, 20, 'active', ?, ?)",
+          "params": [
+            "Pick the film",
+            "Choose what everyone watches.",
+            "{{steward}}",
+            "2026-01-05T00:00:00Z"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__points_ledger (event_id, member_id, points, earned_at) VALUES ('sp-evt-pat', ?, 30, ?)",
+          "params": [
+            "{{pat}}",
+            "2026-01-05T00:00:00Z"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at) VALUES ('sp-req-pat', 'sp-reward', ?, ?), ('sp-req-sam', 'sp-reward', ?, ?)",
+          "params": [
+            "{{pat}}",
+            "2026-01-06T00:00:00Z",
+            "{{sam}}",
+            "2026-01-07T00:00:00Z"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "pat"
+        },
+        {
+          "action": "expectVisible",
+          "as": "pat",
+          "selector": "[data-testid=\"reward-card\"][data-reward-id=\"sp-reward\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "pat",
+          "selector": "[data-testid=\"adult-note\"][data-note=\"no-children\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "pat",
+          "selector": "[data-testid=\"adult-note\"]",
+          "text": "Rewards are earned and redeemed by child members, and there are none here yet. You can set up rewards now; add a child member so someone can earn them."
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"tabs\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"tab\"][data-tab=\"requests\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"pending-notice\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"request-card\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"approve-request\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"points-balance\"]",
+          "count": 0
+        },
+        {
+          "action": "expectVisible",
+          "as": "pat",
+          "selector": "[data-testid=\"add-reward\"]"
+        },
+        {
+          "action": "open",
+          "as": "steward"
+        },
+        {
+          "action": "expectVisible",
+          "as": "steward",
+          "selector": "[data-testid=\"reward-card\"][data-reward-id=\"sp-reward\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "steward",
+          "selector": "[data-testid=\"adult-note\"][data-note=\"no-children\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "steward",
+          "selector": "[data-testid=\"adult-note\"]",
+          "text": "Rewards are earned and redeemed by child members, and there are none here yet. You can set up rewards now; add a child member so someone can earn them."
+        },
+        {
+          "action": "expectVisible",
+          "as": "steward",
+          "selector": "[data-testid=\"pending-notice\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "steward",
+          "selector": "[data-testid=\"pending-notice\"]",
+          "text": "2 pending requests"
+        },
+        {
+          "action": "expectVisible",
+          "as": "steward",
+          "selector": "[data-testid=\"tab\"][data-tab=\"requests\"]"
+        },
+        {
+          "action": "click",
+          "as": "steward",
+          "selector": "[data-testid=\"tab\"][data-tab=\"requests\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "steward",
+          "selector": "[data-testid=\"request-card\"]",
+          "count": 2
+        },
+        {
+          "action": "expectCount",
+          "as": "steward",
+          "selector": "[data-testid=\"request-card\"][data-request-id=\"sp-req-pat\"] [data-testid=\"approve-request\"]",
+          "count": 1
+        },
+        {
+          "action": "expectCount",
+          "as": "steward",
+          "selector": "[data-testid=\"reject-request\"]",
+          "count": 2
+        },
+        {
+          "action": "expectText",
+          "as": "steward",
+          "selector": "[data-testid=\"request-card\"][data-request-id=\"sp-req-sam\"] [data-testid=\"decision-blocked\"]",
+          "text": "does not have enough points"
+        },
+        {
+          "action": "expectVisible",
+          "as": "steward",
+          "selector": "[data-testid=\"adult-note\"][data-note=\"no-children\"]"
+        }
+      ]
     }
   ]
 }

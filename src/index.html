@@ -61,6 +61,8 @@
     .selector-btn.active { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-light); }
     .notice { border-left:4px solid var(--amber); }
     .app-error { border-left:4px solid var(--red); color:var(--red); }
+    .load-error { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--hub-tint-danger, #fee2e2); color: var(--hub-tint-danger-fg, #b91c1c); font-size: 0.9rem; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    .load-error-retry { background: none; border: 1px solid currentColor; border-radius: 8px; padding: 5px 10px; font: inherit; font-weight: 600; color: inherit; cursor: pointer; flex-shrink: 0; }
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
     @media (min-width:480px) { .modal-backdrop { align-items:center; padding:20px; } }
     .modal { background:var(--card); width:100%; max-width:480px; padding:22px; border-radius:var(--radius) var(--radius) 0 0; }
@@ -117,6 +119,7 @@ let selectedKidId = null;
 let tab = "rewards";
 let modalEl = null;
 let errorMsg = "";      // the last refusal or failure, shown under the header
+let loadFailed = false; // the first load failed: rewards and points are unknown, not empty
 
 // Answering requests and seeing other members' points: any adult in a
 // household, and only the steward in a shared space. The hub decides; this
@@ -204,10 +207,11 @@ async function loadMembers() {
     ];
     return;
   }
-  try {
-    const res = await fetch(`${CONTEXT}?keys=family.members`);
-    members = ((await res.json())["family.members"]) ?? [];
-  } catch { members = []; }
+  // A member list that could not be read is a failed load, not a household with nobody in it.
+  const res = await fetch(`${CONTEXT}?keys=family.members`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data || typeof data !== "object" || data.error || (Array.isArray(data.$errors) && data.$errors.includes("family.members"))) throw new Error("Couldn’t reach the hub. Try again.");
+  members = data["family.members"] ?? [];
 }
 
 const READ_LIMIT_MS = 20000;
@@ -472,7 +476,7 @@ function renderRewardsFor(memberId) {
     const pending = pendingForReward(redemptions, memberId, reward.id);
     const enough = canRedeem(points, reward);
     return `
-      <div class="card reward">
+      <div class="card reward" data-testid="reward-card" data-reward-id="${esc(reward.id)}">
         <div class="reward-top"><h3>${esc(reward.title)}</h3></div>
         <div class="desc">${reward.description ? esc(reward.description) : "No description."}</div>
         ${memberId
@@ -499,7 +503,7 @@ function renderRequests() {
       : !r.reward_available ? "This reward was hidden. Reject to return the points."
       : `${esc(memberName(r.member_id))} does not have enough points for this.`;
     return `
-      <div class="card request">
+      <div class="card request" data-testid="request-card" data-request-id="${esc(r.id)}">
         <div>
           <div style="font-weight:800">${esc(memberName(r.member_id))} · ${esc(reward.title)}</div>
           <div style="font-size:.8rem;color:var(--muted)">${r.cost_points} points · ${new Date(r.requested_at).toLocaleDateString()}</div>
@@ -507,8 +511,8 @@ function renderRequests() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="status ${esc(r.status)}">${esc(r.status)}</span>
-          ${choices.includes("approved") ? `<button class="btn btn-good btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="approved">Approve</button>` : ""}
-          ${choices.includes("rejected") ? `<button class="btn btn-danger btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="rejected">Reject</button>` : ""}
+          ${choices.includes("approved") ? `<button class="btn btn-good btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="approved" data-testid="approve-request">Approve</button>` : ""}
+          ${choices.includes("rejected") ? `<button class="btn btn-danger btn-sm" data-action="decide-redemption" data-redemption-id="${esc(r.id)}" data-status="rejected" data-testid="reject-request">Reject</button>` : ""}
         </div>
       </div>`;
   }).join("");
@@ -545,6 +549,14 @@ document.addEventListener("input", (e) => {
 });
 
 function render() {
+  if (loadFailed) {
+    document.getElementById("root").innerHTML = `
+    <header>
+      <div><h1>${glyph("gift", { accent: "currentColor" })} Rewards</h1><div class="sub">Visible progress toward things kids care about</div></div>
+    </header>
+    <div class="load-error" data-testid="load-error" role="alert"><span>Couldn’t load the rewards.</span> <button type="button" class="load-error-retry" data-action="retry-load" data-testid="load-retry">Try again</button></div>`;
+    return;
+  }
   const memberId = currentKidId();
   const kid = members.find(m => m.id === memberId);
   const points = memberId ? pointsFor(memberId) : 0;
@@ -561,18 +573,18 @@ function render() {
   document.getElementById("root").innerHTML = `
     <header>
       <div><h1>${glyph("gift", { accent: "currentColor" })} Rewards</h1><div class="sub">Visible progress toward things kids care about${LOCAL_DEMO ? " · Demo mode" : ""}</div></div>
-      ${isAdult(ME) ? `<button class="btn btn-primary" style="background:#fff;color:var(--accent)" data-action="open-reward-modal">+ Reward</button>` : ""}
+      ${isAdult(ME) ? `<button class="btn btn-primary" style="background:#fff;color:var(--accent)" data-action="open-reward-modal" data-testid="add-reward">+ Reward</button>` : ""}
     </header>
     ${errorMsg ? `<div class="card app-error" role="alert"><div class="card-body">${esc(errorMsg)}</div></div>` : ""}
     ${renderDemoSwitcher()}
     ${renderKidSelector(memberId)}
-    ${adultNote ? `<div class="card notice" role="status" data-testid="adult-note"><div class="card-body">${adultNote}</div></div>` : ""}
+    ${adultNote ? `<div class="card notice" role="status" data-testid="adult-note" data-note="${VIEW_ONLY ? "view-only" : hasNoChildren(members) ? "no-children" : "participant"}"><div class="card-body">${adultNote}</div></div>` : ""}
     ${memberId ? `<div class="points"><div><div class="section-title">${isAdult(ME) ? "Viewing rewards for" : "Working toward"}</div><div style="font-weight:800">${esc(kid?.name ?? "Kid")}</div><div style="font-size:.8rem;color:var(--muted)">${isAdult(ME) ? "Kids redeem points; adults approve requests." : "Redeem when you have enough points. Adults approve requests."}</div></div><strong data-testid="points-balance" data-member-id="${esc(memberId)}">${points}</strong><div style="color:var(--muted);font-weight:700">points</div></div>` : ""}
     ${renderPointsSourceNotice()}
-    ${reviews() && pendingCount > 0 && tab !== "requests" ? `<div class="card notice"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>${pendingCount} pending request${pendingCount === 1 ? "" : "s"}</strong><button class="btn btn-primary btn-sm" data-action="set-tab" data-tab="requests">Review</button></div></div>` : ""}
-    ${hasRequests ? `<div class="tabs">
-      <button class="tab ${tab === "rewards" ? "active" : ""}" data-action="set-tab" data-tab="rewards">Rewards</button>
-      <button class="tab ${tab === "requests" ? "active" : ""}" data-action="set-tab" data-tab="requests">Requests${pendingCount ? ` (${pendingCount})` : ""}</button>
+    ${reviews() && pendingCount > 0 && tab !== "requests" ? `<div class="card notice" data-testid="pending-notice"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>${pendingCount} pending request${pendingCount === 1 ? "" : "s"}</strong><button class="btn btn-primary btn-sm" data-action="set-tab" data-tab="requests">Review</button></div></div>` : ""}
+    ${hasRequests ? `<div class="tabs" data-testid="tabs">
+      <button class="tab ${tab === "rewards" ? "active" : ""}" data-action="set-tab" data-tab="rewards" data-testid="tab">Rewards</button>
+      <button class="tab ${tab === "requests" ? "active" : ""}" data-action="set-tab" data-tab="requests" data-testid="tab">Requests${pendingCount ? ` (${pendingCount})` : ""}</button>
     </div>` : ""}
     ${tab === "rewards" ? renderRewardsFor(memberId) : renderRequests()}
   `;
@@ -610,6 +622,7 @@ document.addEventListener("click", event => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
   const { action, rewardId, redemptionId, status, memberId, tab: nextTab } = button.dataset;
+  if (action === "retry-load") firstLoad();
   if (action === "open-reward-modal") openRewardModal();
   if (action === "add-reward") attempt("add-reward", () => addReward());
   if (action === "close-modal") closeModal();
@@ -627,15 +640,16 @@ document.addEventListener("click", event => {
   if (action === "set-tab" && nextTab) window.setTab(nextTab);
 });
 
-(async () => {
-  await loadMembers();
-  await loadData().catch(() => { errorMsg = "Rewards could not be loaded. Reload to try again."; });
+async function firstLoad() {
+  loadFailed = false;
+  await loadMembers().then(() => loadData()).catch(() => { loadFailed = true; });
   render();
   if (!LOCAL_DEMO && window.__IS_ADMIN) {
     pointsSource = stalledPointsSource(await automationStatus().catch(() => null));
     if (pointsSource) render();
   }
-})();
+}
+firstLoad();
 </script>
 </body>
 </html>
