@@ -2,7 +2,7 @@
  * Retention on the points ledger was blocked on balance semantics: every
  * balance was a JS sum over EVERY ledger row (fetched whole on every load), so
  * expiring rows silently shrank a kid's spendable points. The manifest now
- * declares retain_days with a fold — the hub's retention runner accumulates an
+ * declares retention with a fold — the hub's retention runner accumulates an
  * expiring batch into points_rollup inside the same transaction as the delete —
  * and the client derives earnings in SQL as rollup + SUM(live tail).
  */
@@ -18,7 +18,7 @@ const migration = readFileSync(join(__dirname, "../migrations/003_points_rollup.
 const client = readFileSync(join(__dirname, "../src/index.html"), "utf-8");
 
 describe("points_ledger retention fold", () => {
-  const retain = manifest.row_policies.points_ledger.retain_days;
+  const retain = manifest.retention.points_ledger;
 
   it("declares the fold into points_rollup", () => {
     expect(retain).toMatchObject({
