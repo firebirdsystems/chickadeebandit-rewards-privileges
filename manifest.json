@@ -79,23 +79,25 @@
     },
     "points_ledger": {
       "kind": "adult_writable",
-      "member_read_column": "member_id",
-      "retain_days": {
-        "default": 730,
-        "timestamp_column": "earned_at",
-        "id_column": "event_id",
-        "override_key": "points_history",
-        "fold": {
-          "into_table": "points_rollup",
-          "key_columns": { "member_id": "member_id" },
-          "sum_columns": { "points": "points" },
-          "folded_through_column": "folded_through_at"
-        }
-      }
+      "member_read_column": "member_id"
     },
     "points_rollup": {
       "kind": "adult_writable",
       "member_read_column": "member_id"
+    }
+  },
+  "retention": {
+    "points_ledger": {
+      "default": 730,
+      "timestamp_column": "earned_at",
+      "id_column": "event_id",
+      "override_key": "points_history",
+      "fold": {
+        "into_table": "points_rollup",
+        "key_columns": { "member_id": "member_id" },
+        "sum_columns": { "points": "points" },
+        "folded_through_column": "folded_through_at"
+      }
     }
   },
   "publishes": [
@@ -171,9 +173,6 @@
   "widget": {
     "label": "Rewards",
     "size": "small"
-  },
-  "resource_limits": {
-    "max_db_bytes": 52428800
   },
   "icon": "🎁"
 }
