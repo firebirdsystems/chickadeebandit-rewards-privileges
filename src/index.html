@@ -88,7 +88,7 @@
 
 <script type="module">
 import { esc, isAdult, searchMatch, automationStatus, glyph } from "/hub-sdk.js";
-import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward, searchableFields, reviewsRedemptions, hasNoChildren, canAffordApproval, decisionChoices, normalizeReward, stalledPointsSource } from "./logic.js";
+import { pointsFromLedger, availablePointsFromEarned, combineRedemptions, rewardProgress, canRedeem, pendingForReward, searchableFields, reviewsRedemptions, hasNoChildren, canAffordApproval, decisionChoices, normalizeReward, stalledPointsSource, outcomeUnknown, storedDiffers, SAVED_AS_FIRST, failureLine } from "./logic.js";
 
 const CONTEXT = window.__CONTEXT_URL ?? "";
 const DB = window.__DB_URL ?? "";
@@ -160,26 +160,37 @@ async function db(sql, params = [], { timeoutMs = 0 } = {}) {
   }
   // A refusal is an answer too: without this a write the hub turned down read
   // as a success, and the click that asked for it appeared to do nothing.
-  if (!res.ok || json.error) throw Object.assign(new Error(json.error || "That could not be saved"), { refused: true });
+  if (!res.ok || json.error) throw Object.assign(new Error(json.error || "That could not be saved"), { refused: true, status: res.status, code: json.code });
   return json;
 }
 
-// A save the hub turned down is said in this page's words; the hub's own go to
-// the console. Anything else `db` raises already says what to do and is kept.
-async function write(sql, params, failure = "Couldn’t save — try again.") {
+// A line this page worded for the member; only these reach the screen.
+function userError(message, cause) { return Object.assign(new Error(message, { cause }), { forUser: true }); }
+
+// A failed save is said in this page's words (failureLine, from its status),
+// never the hub's or the browser's ("Failed to fetch"); the raw error goes to
+// the console and stays on `cause`.
+async function write(sql, params, words) {
   try {
     return await db(sql, params);
   } catch (e) {
-    if (!e?.refused) throw e;
     console.error(e);
-    throw new Error(failure, { cause: e });
+    throw userError(failureLine(e, words), e);
   }
+}
+
+// After a write that changed nothing: whether the row is still there
+// (true / false), or null when the re-read itself failed.
+async function rowFound(table, id) {
+  try { return !!(await db(`SELECT id FROM ${table} WHERE id = ?`, [id])).rows?.length; }
+  catch (e) { console.error(e); return null; }
 }
 
 // A failure raised from a form is said in that form, which stays open as
 // typed to send again. Anything else is shown under the header.
 function showError(e, dialog = modalEl) {
-  const message = e?.message || "Something went wrong. Please try again.";
+  if (!e?.forUser) console.error(e);
+  const message = e?.forUser ? e.message : "Something went wrong. Please try again.";
   const note = dialog && modalEl === dialog ? dialog.querySelector("#reward-error") : null;
   if (note) { note.textContent = message; note.hidden = false; return; }
   errorMsg = message;
@@ -198,7 +209,7 @@ function attempt(key, action) {
   // only, not in a form the adult has since opened and begun typing in.
   const dialog = modalEl;
   const refreshed = outOfDate
-    ? loadData().then(() => { outOfDate = false; render(); }, () => { throw new Error("This page is out of date and could not refresh. Reload before trying again."); })
+    ? loadData().then(() => { outOfDate = false; render(); }, (e) => { throw userError("This page is out of date and could not refresh. Reload before trying again.", e); })
     : Promise.resolve();
   return refreshed.then(action).catch((e) => showError(e, dialog)).finally(() => inFlight.delete(key));
 }
@@ -350,24 +361,57 @@ async function addReward() {
     }
     return;
   }
-  const id = crypto.randomUUID();
+  // The id is the dialog's, minted on its first Save and sent on every retry:
+  // a try whose answer was lost may have stored the reward, and a second press
+  // must find it rather than add (and announce) it twice.
+  const id = dialog ? (dialog.dataset.rowId ||= crypto.randomUUID()) : crypto.randomUUID();
   if (!DB) {
     rewards = [...rewards, { id, title, description, cost_points:cost, status:"active", created_by:ME.id, created_at:new Date().toISOString() }];
     if (modalEl === dialog) closeModal();
     render();
     return;
   }
-  await write(
-    `INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at)
-     VALUES (?, ?, ?, ?, 'active', ?, ?)`,
-    [id, title, description, cost, ME.id ?? "adult", new Date().toISOString()],
-    "Couldn’t save the reward — try again."
-  );
-  await publishEvent("reward.available", id, { reward_id:id, title, cost_points:cost });
-  await logActivity("reward_available", `New reward available: ${title}`, { rewardId:id });
+  let stored = { title, cost_points: cost };
+  let savedNote = "";
+  try {
+    await write(
+      `INSERT INTO app_rewards_privileges__rewards (id, title, description, cost_points, status, created_by, created_at)
+       VALUES (?, ?, ?, ?, 'active', ?, ?)`,
+      [id, title, description, cost, ME.id ?? "adult", new Date().toISOString()],
+      { action: "save the reward", thing: "reward" }
+    );
+  } catch (e) {
+    // Unknown outcome: read the reward back by the pinned id. Found means an
+    // earlier try landed and its success path never ran, so it runs now, once.
+    // Not found, or the read failed: the save fails, the id stays pinned.
+    if (!outcomeUnknown(e?.cause ?? e)) throw e;
+    let row = null;
+    try { row = (await db("SELECT id, title, description, cost_points FROM app_rewards_privileges__rewards WHERE id = ?", [id])).rows?.[0] ?? null; }
+    catch (readErr) {
+      // The id is ours: with the read-back failed, a UNIQUE answer may be this
+      // dialog's own first try — "try again", not "already exists".
+      console.error(readErr);
+      throw userError(failureLine(null, { action: "save the reward", thing: "reward" }), e);
+    }
+    if (!row) throw e;
+    console.error(e);
+    // Edited since that first try: what was stored is kept, and said so.
+    if (storedDiffers(row, { title, description, cost_points: cost })) savedNote = SAVED_AS_FIRST;
+    stored = { title: row.title, cost_points: Number(row.cost_points) || 0 };
+  }
+  if (dialog) delete dialog.dataset.rowId;
+  await publishEvent("reward.available", id, { reward_id:id, title: stored.title, cost_points: stored.cost_points });
+  await logActivity("reward_available", `New reward available: ${stored.title}`, { rewardId:id });
   if (modalEl === dialog) closeModal();
   await reload();
+  if (savedNote) { errorMsg = savedNote; render(); }
 }
+
+// Ids pinned per reward (a request) and per request (a decision), minted on the
+// first tap and sent on every retry: a try whose answer was lost may have
+// stored the row, and a second tap must find it rather than store another.
+const pinnedRequestIds = new Map();
+const pinnedDecisionIds = new Map();
 
 async function requestReward(rewardId) {
   const reward = rewards.find(r => r.id === rewardId && r.status === "active");
@@ -384,12 +428,27 @@ async function requestReward(rewardId) {
     render();
     return;
   }
-  await write(
-    `INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at)
-     VALUES (?, ?, ?, ?)`,
-    [crypto.randomUUID(), rewardId, ME.id, new Date().toISOString()],
-    "Couldn’t send your request — try again."
-  );
+  const words = { action: "send your request", thing: "request" };
+  const requestId = pinnedRequestIds.get(rewardId) ?? crypto.randomUUID();
+  pinnedRequestIds.set(rewardId, requestId);
+  try {
+    await write(
+      `INSERT INTO app_rewards_privileges__redemption_requests (id, reward_id, member_id, requested_at)
+       VALUES (?, ?, ?, ?)`,
+      [requestId, rewardId, ME.id, new Date().toISOString()],
+      words
+    );
+  } catch (e) {
+    // Unknown outcome: read the request back by the pinned id. Found means an
+    // earlier try landed. Not found, or the read failed: the id stays pinned.
+    if (!outcomeUnknown(e?.cause ?? e)) throw e;
+    let found = false;
+    try { found = !!(await db("SELECT id FROM app_rewards_privileges__redemption_requests WHERE id = ?", [requestId])).rows?.length; }
+    catch (readErr) { console.error(readErr); throw userError(failureLine(null, words), e); }
+    if (!found) throw e;
+    console.error(e);
+  }
+  pinnedRequestIds.delete(rewardId);
   await reload();
 }
 
@@ -416,23 +475,39 @@ async function decideRedemption(id, status) {
     render();
     return;
   }
+  const words = { action: "save your answer", thing: "request" };
+  const decisionId = pinnedDecisionIds.get(id) ?? crypto.randomUUID();
+  pinnedDecisionIds.set(id, decisionId);
+  let decided = status;
   try {
     await db(
       `INSERT INTO app_rewards_privileges__redemption_decisions (id, request_id, reward_id, member_id, status, decided_at, decided_by)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [crypto.randomUUID(), id, reward.id, redemption.member_id, status, new Date().toISOString(), ME.id ?? "adult"]
+      [decisionId, id, reward.id, redemption.member_id, status, new Date().toISOString(), ME.id ?? "adult"]
     );
   } catch (e) {
-    // A request is answered once. When another reviewer got there first, show
-    // their answer instead of a database message over a row that still looks
-    // pending and refuses every further tap.
-    await loadData().catch(() => {});
-    if (/unique/i.test(e?.message ?? "")) throw new Error("Someone else already answered this request.");
-    if (!e?.refused) throw e;
     console.error(e);
-    throw new Error("Couldn’t save your answer — try again.", { cause: e });
+    // Unknown outcome (a UNIQUE answer included: a request is answered once):
+    // read the request's decision back. Under the pinned id, it is this
+    // reviewer's own earlier try, and its success path runs now, once.
+    let stored = null, readFailed = false;
+    if (outcomeUnknown(e)) {
+      try { stored = (await db("SELECT id, status FROM app_rewards_privileges__redemption_decisions WHERE request_id = ?", [id])).rows?.[0] ?? null; }
+      catch (readErr) { console.error(readErr); readFailed = true; }
+    }
+    if (stored?.id === decisionId) decided = stored.status;
+    else {
+      // When another reviewer got there first, show their answer instead of a
+      // database message over a row that still looks pending.
+      await loadData().catch(() => {});
+      if (stored) { pinnedDecisionIds.delete(id); throw userError("Someone else already answered this request.", e); }
+      if (readFailed) throw userError(failureLine(null, words), e);
+      if (e?.code === "UNIQUE_CONSTRAINT" || /unique/i.test(e?.message ?? "")) throw userError("Someone else already answered this request.", e);
+      throw userError(failureLine(e, words), e);
+    }
   }
-  if (status === "approved") {
+  pinnedDecisionIds.delete(id);
+  if (decided === "approved") {
     await publishEvent("reward.redeemed", redemption.member_id, {
       reward_id: reward.id,
       title: reward.title,
@@ -456,7 +531,13 @@ async function archiveReward(id) {
     render();
     return;
   }
-  await write(`UPDATE app_rewards_privileges__rewards SET status = 'archived' WHERE id = ?`, [id], "Couldn’t archive the reward — try again.");
+  const words = { action: "archive the reward", thing: "reward" };
+  const res = await write(`UPDATE app_rewards_privileges__rewards SET status = 'archived' WHERE id = ?`, [id], words);
+  if (res?.changed === 0) {
+    const found = await rowFound("app_rewards_privileges__rewards", id);
+    await reload();
+    throw userError(failureLine(null, { ...words, found }));
+  }
   await reload();
 }
 
